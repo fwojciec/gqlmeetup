@@ -1,0 +1,62 @@
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+enum Role {
+  ADMIN
+  USER
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  email: String! @hasRole(role: USER)
+  authors: [Author!]!
+}
+
+type Author {
+  id: ID!
+  name: String!
+  agent: Agent!
+  books: [Book!]!
+}
+
+type Book {
+  id: ID!
+  title: String!
+  authors: [Author!]!
+}
+
+type Query {
+  agent(id: ID!): Agent
+  agents: [Agent!]!
+  author(id: ID!): Author
+  authors: [Author!]!
+  book(id: ID!): Book
+  books: [Book!]!
+}
+
+type Mutation {
+  agentCreate(data: AgentInput!): Agent! @hasRole(role: ADMIN)
+  agentDelete(id: ID!): Agent! @hasRole(role: USER)
+  agentUpdate(id: ID!, data: AgentInput!): Agent! @hasRole(role: USER)
+  authorCreate(data: AuthorInput!): Author! @hasRole(role: USER)
+  authorDelete(id: ID!): Author! @hasRole(role: USER)
+  authorUpdate(id: ID!, data: AuthorInput!): Author! @hasRole(role: USER)
+  bookCreate(data: BookInput!): Book! @hasRole(role: USER)
+  bookDelete(id: ID!): Book! @hasRole(role: USER)
+  bookUpdate(id: ID!, data: BookInput!): Book! @hasRole(role: USER)
+}
+
+input AgentInput {
+  name: String!
+  email: String!
+}
+
+input AuthorInput {
+  name: String!
+  agent_id: ID!
+}
+
+input BookInput {
+  title: String!
+  authorIDs: [ID!]!
+}

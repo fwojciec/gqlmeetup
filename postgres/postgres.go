@@ -1,0 +1,131 @@
+package postgres
+
+import (
+	"context"
+	"database/sql"
+
+	"github.com/fwojciec/gqlmeetup"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // required
+)
+
+// Open is the same as sqlx.Open, but assumes a PostgreSQL database.
+func Open(dataSourceName string) (*sqlx.DB, error) {
+	return sqlx.Open("postgres", dataSourceName)
+}
+
+// Repository implements the gqlmeetup.Repository interface.
+type Repository struct {
+	DB *sqlx.DB
+}
+
+var _ gqlmeetup.Repository = (*Repository)(nil)
+
+const agentCreateQuery = `
+INSERT INTO agents (name, email)
+VALUES ($1, $2)
+RETURNING *;`
+
+// AgentCreate creates an agent.
+func (r *Repository) AgentCreate(ctx context.Context, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
+	res := &gqlmeetup.Agent{}
+	if err := r.DB.GetContext(ctx, res, agentCreateQuery, &data.Name, &data.Email); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+const agentGetByIDQuery = `
+SELECT * FROM agents WHERE id = $1;`
+
+// AgentGetByID gets an agent by ID.
+func (r *Repository) AgentGetByID(ctx context.Context, id int64) (*gqlmeetup.Agent, error) {
+	res := &gqlmeetup.Agent{}
+	if err := r.DB.GetContext(ctx, res, agentGetByIDQuery, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, gqlmeetup.ErrNotFound
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
+const agentsListQuery = `
+SELECT * FROM agents;`
+
+// AgentsList lists all agents.
+func (r *Repository) AgentsList(ctx context.Context) ([]*gqlmeetup.Agent, error) {
+	res := make([]*gqlmeetup.Agent, 0)
+	if err := r.DB.SelectContext(ctx, &res, agentsListQuery); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+const authorCreateQuery = `
+INSERT INTO authors (name, agent_id)
+VALUES ($1, $2)
+RETURNING *;`
+
+// AuthorCreate creates an author.
+func (r *Repository) AuthorCreate(ctx context.Context, data gqlmeetup.Author) (*gqlmeetup.Author, error) {
+	res := &gqlmeetup.Author{}
+	if err := r.DB.GetContext(ctx, res, authorCreateQuery, &data.Name, &data.AgentID); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+const authorGetByIDQuery = `
+SELECT * FROM authors WHERE id = $1;`
+
+// AuthorGetByID gets an agent by ID.
+func (r *Repository) AuthorGetByID(ctx context.Context, id int64) (*gqlmeetup.Author, error) {
+	res := &gqlmeetup.Author{}
+	if err := r.DB.GetContext(ctx, res, authorGetByIDQuery, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, gqlmeetup.ErrNotFound
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
+const authorsListQuery = `
+SELECT * FROM authors;`
+
+// AuthorsList lists all agents.
+func (r *Repository) AuthorsList(ctx context.Context) ([]*gqlmeetup.Author, error) {
+	res := make([]*gqlmeetup.Author, 0)
+	if err := r.DB.SelectContext(ctx, &res, authorsListQuery); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+const bookGetByIDQuery = `
+SELECT * FROM books WHERE id = $1;`
+
+// BookGetByID gets an agent by ID.
+func (r *Repository) BookGetByID(ctx context.Context, id int64) (*gqlmeetup.Book, error) {
+	res := &gqlmeetup.Book{}
+	if err := r.DB.GetContext(ctx, res, bookGetByIDQuery, id); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, gqlmeetup.ErrNotFound
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
+const booksListQuery = `
+SELECT * FROM books;`
+
+// BooksList lists all agents.
+func (r *Repository) BooksList(ctx context.Context) ([]*gqlmeetup.Book, error) {
+	res := make([]*gqlmeetup.Book, 0)
+	if err := r.DB.SelectContext(ctx, &res, booksListQuery); err != nil {
+		return nil, err
+	}
+	return res, nil
+}

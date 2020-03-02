@@ -1,0 +1,15 @@
+# gqlgen.yml
+# Refer to https://gqlgen.com/config/ for detailed documentation.
+
+schema: schema.graphql
+exec:
+  filename: gqlgen/exec.go
+model:
+  filename: gqlgen/model.go
+resolver:
+  filename: gqlgen/resolvers.go
+  type: Resolver
+
+# use the domain models
+autobind:
+  - github.com/fwojciec/gqlmeetup

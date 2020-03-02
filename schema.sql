@@ -1,0 +1,27 @@
+CREATE TABLE IF NOT EXISTS agents (
+    id bigserial PRIMARY KEY,
+    name text NOT NULL,
+    email text NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS authors (
+    id bigserial PRIMARY KEY,
+    name text NOT NULL,
+    agent_id bigint NOT NULL,
+    FOREIGN KEY (agent_id) REFERENCES agents (id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS books (
+    id bigserial PRIMARY KEY,
+    title text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS book_authors (
+    id bigserial PRIMARY KEY,
+    book_id bigint NOT NULL,
+    author_id bigint NOT NULL,
+    FOREIGN KEY (book_id) REFERENCES books (id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE,
+    UNIQUE (book_id, author_id)
+);
+
