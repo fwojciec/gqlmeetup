@@ -32,11 +32,15 @@ type BookAuthor struct {
 // Repository represents database functionality.
 type Repository interface {
 	AgentCreate(ctx context.Context, data Agent) (*Agent, error)
+	AgentDelete(ctx context.Context, id int64) (*Agent, error)
 	AgentGetByID(ctx context.Context, id int64) (*Agent, error)
 	AgentsList(ctx context.Context) ([]*Agent, error)
+	AgentUpdate(ctx context.Context, id int64, data Agent) (*Agent, error)
 	AuthorCreate(ctx context.Context, data Author) (*Author, error)
+	AuthorDelete(ctx context.Context, id int64) (*Author, error)
 	AuthorGetByID(ctx context.Context, id int64) (*Author, error)
 	AuthorsList(ctx context.Context) ([]*Author, error)
+	AuthorUpdate(ctx context.Context, id int64, data Author) (*Author, error)
 	BookGetByID(ctx context.Context, id int64) (*Book, error)
 	BooksList(ctx context.Context) ([]*Book, error)
 }

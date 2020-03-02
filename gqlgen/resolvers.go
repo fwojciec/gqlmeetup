@@ -41,27 +41,87 @@ func (r *bookResolver) Authors(ctx context.Context, obj *gqlmeetup.Book) ([]*gql
 }
 
 func (r *mutationResolver) AgentCreate(ctx context.Context, data AgentInput) (*gqlmeetup.Agent, error) {
-	panic("not implemented")
-}
-
-func (r *mutationResolver) AgentUpdate(ctx context.Context, id string, data AgentInput) (*gqlmeetup.Agent, error) {
-	panic("not implemented")
+	res, err := r.Repository.AgentCreate(ctx, gqlmeetup.Agent{
+		Email: data.Email,
+		Name:  data.Name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) AgentDelete(ctx context.Context, id string) (*gqlmeetup.Agent, error) {
-	panic("not implemented")
+	agentID, err := stringToint64(id)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.AgentDelete(ctx, agentID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *mutationResolver) AgentUpdate(ctx context.Context, id string, data AgentInput) (*gqlmeetup.Agent, error) {
+	agentID, err := stringToint64(id)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.AgentUpdate(ctx, agentID, gqlmeetup.Agent{
+		Email: data.Email,
+		Name:  data.Name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) AuthorCreate(ctx context.Context, data AuthorInput) (*gqlmeetup.Author, error) {
-	panic("not implemented")
-}
-
-func (r *mutationResolver) AuthorUpdate(ctx context.Context, id string, data AuthorInput) (*gqlmeetup.Author, error) {
-	panic("not implemented")
+	agentID, err := stringToint64(data.AgentID)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.AuthorCreate(ctx, gqlmeetup.Author{
+		Name:    data.Name,
+		AgentID: agentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) AuthorDelete(ctx context.Context, id string) (*gqlmeetup.Author, error) {
-	panic("not implemented")
+	authorID, err := stringToint64(id)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.AuthorDelete(ctx, authorID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *mutationResolver) AuthorUpdate(ctx context.Context, id string, data AuthorInput) (*gqlmeetup.Author, error) {
+	authorID, err := stringToint64(id)
+	if err != nil {
+		return nil, err
+	}
+	agentID, err := stringToint64(data.AgentID)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.AuthorUpdate(ctx, authorID, gqlmeetup.Author{
+		Name:    data.Name,
+		AgentID: agentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) BookCreate(ctx context.Context, data BookInput) (*gqlmeetup.Book, error) {

@@ -50,6 +50,173 @@ func TestBookResolver(t *testing.T) {
 	})
 }
 
+func TestMutationResolver(t *testing.T) {
+	t.Parallel()
+
+	t.Run("AgentCreate", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name string
+			data gqlgen.AgentInput
+			err  error
+			exp  gqlmeetup.Agent
+		}{
+			{
+				name: "successful create",
+				data: gqlgen.AgentInput{
+					Email: "test@email.com",
+					Name:  "Test Name",
+				},
+				err: nil,
+				exp: gqlmeetup.Agent{
+					Email: "test@email.com",
+					Name:  "Test Name",
+				},
+			},
+			{
+				name: "error",
+				data: gqlgen.AgentInput{},
+				err:  errors.New("text error"),
+				exp:  gqlmeetup.Agent{},
+			},
+		}
+
+		for _, tc := range tests {
+			tc := tc
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				repoMock := &mocks.RepositoryMock{
+					AgentCreateFunc: func(ctx context.Context, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
+						return nil, tc.err
+					},
+				}
+				r := &gqlgen.Resolver{
+					Repository: repoMock,
+				}
+				_, err := r.Mutation().AgentCreate(context.Background(), tc.data)
+				equals(t, tc.err, err)
+				equals(t, repoMock.AgentCreateCalls()[0].Data, tc.exp)
+			})
+		}
+	})
+
+	t.Run("AgentDelete", func(t *testing.T) {
+		t.Parallel()
+		repoMock := &mocks.RepositoryMock{
+			AgentDeleteFunc: func(ctx context.Context, id int64) (*gqlmeetup.Agent, error) {
+				return nil, nil
+			},
+		}
+		r := &gqlgen.Resolver{
+			Repository: repoMock,
+		}
+		_, _ = r.Mutation().AgentDelete(context.Background(), "234")
+		equals(t, repoMock.AgentDeleteCalls()[0].ID, int64(234))
+	})
+
+	t.Run("AgentUpdate", func(t *testing.T) {
+		t.Parallel()
+		repoMock := &mocks.RepositoryMock{
+			AgentUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
+				return nil, nil
+			},
+		}
+		r := &gqlgen.Resolver{
+			Repository: repoMock,
+		}
+		_, _ = r.Mutation().AgentUpdate(context.Background(), "234", gqlgen.AgentInput{
+			Email: "test@email.com",
+			Name:  "test name",
+		})
+		equals(t, repoMock.AgentUpdateCalls()[0].ID, int64(234))
+		equals(t, repoMock.AgentUpdateCalls()[0].Data, gqlmeetup.Agent{
+			Email: "test@email.com",
+			Name:  "test name",
+		})
+	})
+
+	t.Run("AuthorCreate", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name string
+			data gqlgen.AuthorInput
+			err  error
+			exp  gqlmeetup.Author
+		}{
+			{
+				name: "successful create",
+				data: gqlgen.AuthorInput{
+					Name:    "Test Name",
+					AgentID: "12",
+				},
+				err: nil,
+				exp: gqlmeetup.Author{
+					Name:    "Test Name",
+					AgentID: 12,
+				},
+			},
+			{
+				name: "error",
+				data: gqlgen.AuthorInput{AgentID: "1"},
+				err:  errors.New("text error"),
+				exp:  gqlmeetup.Author{AgentID: 1},
+			},
+		}
+		for _, tc := range tests {
+			tc := tc
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				repoMock := &mocks.RepositoryMock{
+					AuthorCreateFunc: func(ctx context.Context, data gqlmeetup.Author) (*gqlmeetup.Author, error) {
+						return nil, tc.err
+					},
+				}
+				r := &gqlgen.Resolver{
+					Repository: repoMock,
+				}
+				_, err := r.Mutation().AuthorCreate(context.Background(), tc.data)
+				equals(t, tc.err, err)
+				equals(t, repoMock.AuthorCreateCalls()[0].Data, tc.exp)
+			})
+		}
+	})
+
+	t.Run("AuthorDelete", func(t *testing.T) {
+		t.Parallel()
+		repoMock := &mocks.RepositoryMock{
+			AuthorDeleteFunc: func(ctx context.Context, id int64) (*gqlmeetup.Author, error) {
+				return nil, nil
+			},
+		}
+		r := &gqlgen.Resolver{
+			Repository: repoMock,
+		}
+		_, _ = r.Mutation().AuthorDelete(context.Background(), "234")
+		equals(t, repoMock.AuthorDeleteCalls()[0].ID, int64(234))
+	})
+
+	t.Run("AuthorUpdate", func(t *testing.T) {
+		t.Parallel()
+		repoMock := &mocks.RepositoryMock{
+			AuthorUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Author) (*gqlmeetup.Author, error) {
+				return nil, nil
+			},
+		}
+		r := &gqlgen.Resolver{
+			Repository: repoMock,
+		}
+		_, _ = r.Mutation().AuthorUpdate(context.Background(), "234", gqlgen.AuthorInput{
+			Name:    "test name",
+			AgentID: "567",
+		})
+		equals(t, repoMock.AuthorUpdateCalls()[0].ID, int64(234))
+		equals(t, repoMock.AuthorUpdateCalls()[0].Data, gqlmeetup.Author{
+			Name:    "test name",
+			AgentID: 567,
+		})
+	})
+}
+
 func TestQueryResolver(t *testing.T) {
 	t.Parallel()
 

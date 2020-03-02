@@ -32,13 +32,31 @@ func TestAgentCreate(t *testing.T) {
 		ctx := context.Background()
 		repo := postgres.Repository{DB: sdb}
 		t.Run("create", func(t *testing.T) {
-			res, err := repo.AgentCreate(ctx, testAgent3)
+			res, err := repo.AgentCreate(ctx, testAgentCreate)
 			ok(t, err)
-			equals(t, &testAgent3, res)
+			equals(t, &testAgentCreate, res)
 			t.Run("assert agent was created", func(t *testing.T) {
 				t.Parallel()
-				res, _ := repo.AgentGetByID(ctx, testAgent3.ID)
-				equals(t, &testAgent3, res)
+				res, _ := repo.AgentGetByID(ctx, testAgentCreate.ID)
+				equals(t, &testAgentCreate, res)
+			})
+		})
+	})
+}
+
+func TestAgentDelete(t *testing.T) {
+	t.Parallel()
+	pgt.Runner(t, []string{"agents"}, func(t *testing.T, sdb *sqlx.DB) {
+		ctx := context.Background()
+		repo := postgres.Repository{DB: sdb}
+		t.Run("delete", func(t *testing.T) {
+			res, err := repo.AgentDelete(ctx, testAgent1.ID)
+			ok(t, err)
+			equals(t, &testAgent1, res)
+			t.Run("assert agent was deleted", func(t *testing.T) {
+				t.Parallel()
+				_, err := repo.AgentGetByID(ctx, testAgent1.ID)
+				equals(t, gqlmeetup.ErrNotFound, err)
 			})
 		})
 	})
@@ -89,19 +107,55 @@ func TestAgentsList(t *testing.T) {
 	})
 }
 
+func TestAgentUpdate(t *testing.T) {
+	t.Parallel()
+	pgt.Runner(t, []string{"agents"}, func(t *testing.T, sdb *sqlx.DB) {
+		ctx := context.Background()
+		repo := postgres.Repository{DB: sdb}
+		t.Run("update", func(t *testing.T) {
+			res, err := repo.AgentUpdate(ctx, testAgent1.ID, testAgentUpdate)
+			ok(t, err)
+			equals(t, &testAgentUpdate, res)
+			t.Run("assert agent was updated", func(t *testing.T) {
+				t.Parallel()
+				res, _ := repo.AgentGetByID(ctx, testAgent1.ID)
+				equals(t, &testAgentUpdate, res)
+			})
+		})
+	})
+}
+
 func TestAuthorCreate(t *testing.T) {
 	t.Parallel()
 	pgt.Runner(t, []string{"authors"}, func(t *testing.T, sdb *sqlx.DB) {
 		ctx := context.Background()
 		repo := postgres.Repository{DB: sdb}
 		t.Run("create", func(t *testing.T) {
-			res, err := repo.AuthorCreate(ctx, testAuthor3)
+			res, err := repo.AuthorCreate(ctx, testAuthorCreate)
 			ok(t, err)
-			equals(t, &testAuthor3, res)
+			equals(t, &testAuthorCreate, res)
 			t.Run("assert agent was created", func(t *testing.T) {
 				t.Parallel()
-				res, _ := repo.AuthorGetByID(ctx, testAuthor3.ID)
-				equals(t, &testAuthor3, res)
+				res, _ := repo.AuthorGetByID(ctx, testAuthorCreate.ID)
+				equals(t, &testAuthorCreate, res)
+			})
+		})
+	})
+}
+
+func TestAuthorDelete(t *testing.T) {
+	t.Parallel()
+	pgt.Runner(t, []string{"authors"}, func(t *testing.T, sdb *sqlx.DB) {
+		ctx := context.Background()
+		repo := postgres.Repository{DB: sdb}
+		t.Run("delete", func(t *testing.T) {
+			res, err := repo.AuthorDelete(ctx, testAuthor1.ID)
+			ok(t, err)
+			equals(t, &testAuthor1, res)
+			t.Run("assert agent was deleted", func(t *testing.T) {
+				t.Parallel()
+				_, err := repo.AuthorGetByID(ctx, testAuthor1.ID)
+				equals(t, gqlmeetup.ErrNotFound, err)
 			})
 		})
 	})
@@ -149,6 +203,24 @@ func TestAuthorsList(t *testing.T) {
 		res, err := repo.AuthorsList(context.Background())
 		ok(t, err)
 		equals(t, []*gqlmeetup.Author{&testAuthor1, &testAuthor2}, res)
+	})
+}
+
+func TestAuthorUpdate(t *testing.T) {
+	t.Parallel()
+	pgt.Runner(t, []string{"authors"}, func(t *testing.T, sdb *sqlx.DB) {
+		ctx := context.Background()
+		repo := postgres.Repository{DB: sdb}
+		t.Run("update", func(t *testing.T) {
+			res, err := repo.AuthorUpdate(ctx, testAuthor1.ID, testAuthorUpdate)
+			ok(t, err)
+			equals(t, &testAuthorUpdate, res)
+			t.Run("assert agent was updated", func(t *testing.T) {
+				t.Parallel()
+				res, _ := repo.AuthorGetByID(ctx, testAuthor1.ID)
+				equals(t, &testAuthorUpdate, res)
+			})
+		})
 	})
 }
 
@@ -208,8 +280,13 @@ var (
 		Name:  "Test Agent 2",
 		Email: "agent2@test.com",
 	}
-	testAgent3 = gqlmeetup.Agent{
+	testAgentCreate = gqlmeetup.Agent{
 		ID:    3,
+		Name:  "Test Agent 3",
+		Email: "agent3@test.com",
+	}
+	testAgentUpdate = gqlmeetup.Agent{
+		ID:    1,
 		Name:  "Test Agent 3",
 		Email: "agent3@test.com",
 	}
@@ -223,10 +300,15 @@ var (
 		Name:    "Test Author 2",
 		AgentID: 2,
 	}
-	testAuthor3 = gqlmeetup.Author{
+	testAuthorCreate = gqlmeetup.Author{
 		ID:      3,
 		Name:    "Test Author 3",
 		AgentID: 1,
+	}
+	testAuthorUpdate = gqlmeetup.Author{
+		ID:      1,
+		Name:    "Test Author 3",
+		AgentID: 2,
 	}
 	testBook1 = gqlmeetup.Book{
 		ID:    1,
