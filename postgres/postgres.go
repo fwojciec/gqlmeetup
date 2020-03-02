@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/fwojciec/gqlmeetup"
 	"github.com/jmoiron/sqlx"
@@ -147,6 +149,38 @@ func (r *Repository) AuthorUpdate(ctx context.Context, id int64, data gqlmeetup.
 	return res, nil
 }
 
+const createBookQuery = `
+INSERT INTO books (title) VALUES ($1) RETURNING *;`
+
+// BookCreate creates a book
+func (r *Repository) BookCreate(ctx context.Context, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error) {
+	if len(authorIDs) < 1 {
+		return nil, gqlmeetup.ErrInvalid
+	}
+	res := &gqlmeetup.Book{}
+	return res, withTx(ctx, r.DB, func(tx *sqlx.Tx) error {
+		if err := tx.GetContext(ctx, res, createBookQuery, &data.Title); err != nil {
+			return err
+		}
+		if err := setBookAuthors(ctx, tx, res.ID, authorIDs); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+const bookDeleteQuery = `
+DELETE FROM books WHERE id = $1 RETURNING *;`
+
+// BookDelete deletes an book.
+func (r *Repository) BookDelete(ctx context.Context, id int64) (*gqlmeetup.Book, error) {
+	res := &gqlmeetup.Book{}
+	if err := r.DB.GetContext(ctx, res, bookDeleteQuery, &id); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 const bookGetByIDQuery = `
 SELECT * FROM books WHERE id = $1;`
 
@@ -172,4 +206,79 @@ func (r *Repository) BooksList(ctx context.Context) ([]*gqlmeetup.Book, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+const updateBookQuery = `
+UPDATE books SET title=$1 WHERE id=$2 RETURNING *;`
+
+// BookUpdate updates a book.
+func (r *Repository) BookUpdate(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error) {
+	if len(authorIDs) < 1 {
+		return nil, gqlmeetup.ErrInvalid
+	}
+	res := &gqlmeetup.Book{}
+	return res, withTx(ctx, r.DB, func(tx *sqlx.Tx) error {
+		if err := tx.GetContext(ctx, res, updateBookQuery, &data.Title, &id); err != nil {
+			return err
+		}
+		if err := unsetBookAuthors(ctx, tx, id); err != nil {
+			return nil
+		}
+		if err := setBookAuthors(ctx, tx, id, authorIDs); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+const setBookAuthorsPrefix = `
+INSERT INTO book_authors (book_id, author_id) VALUES `
+
+func setBookAuthors(ctx context.Context, tx *sqlx.Tx, bookID int64, authorIDs []int64) error {
+	suffix, args := batchify(bookID, authorIDs)
+	_, err := tx.ExecContext(ctx, setBookAuthorsPrefix+suffix, args...)
+	return err
+}
+
+const unsetBookAuthorsQuery = `
+DELETE FROM book_authors WHERE book_id = $1;`
+
+func unsetBookAuthors(ctx context.Context, tx *sqlx.Tx, bookID int64) error {
+	_, err := tx.ExecContext(ctx, unsetBookAuthorsQuery, bookID)
+	return err
+}
+
+// batchify is a helper function for batch inserts. It can be used to create
+// entries is associative tables (for example book_authors, client_territories,
+// etc.). It generates a query prefix with placeholders and a slice of arguments
+// that correspond to these placeholders.
+func batchify(pid int64, cids []int64) (string, []interface{}) {
+	args := make([]interface{}, len(cids)*2)
+	var buf bytes.Buffer
+	for i := 1; i <= len(cids); i++ {
+		fmt.Fprintf(&buf, "($%d, $%d)", i*2-1, i*2)
+		args[i*2-2] = pid
+		args[i*2-1] = cids[i-1]
+		if i < len(cids) {
+			buf.WriteString(", ")
+		}
+	}
+	return buf.String(), args
+}
+
+// withTx helps with transactions.
+func withTx(ctx context.Context, db *sqlx.DB, txFn func(tx *sqlx.Tx) error) error {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	err = txFn(tx)
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			err = fmt.Errorf("tx failed: %v, unable to rollback: %v", err, rbErr)
+		}
+	} else {
+		err = tx.Commit()
+	}
+	return err
 }

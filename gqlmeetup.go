@@ -41,6 +41,9 @@ type Repository interface {
 	AuthorGetByID(ctx context.Context, id int64) (*Author, error)
 	AuthorsList(ctx context.Context) ([]*Author, error)
 	AuthorUpdate(ctx context.Context, id int64, data Author) (*Author, error)
+	BookCreate(ctx context.Context, data Book, authorIDs []int64) (*Book, error)
+	BookDelete(ctx context.Context, id int64) (*Book, error)
 	BookGetByID(ctx context.Context, id int64) (*Book, error)
 	BooksList(ctx context.Context) ([]*Book, error)
+	BookUpdate(ctx context.Context, id int64, data Book, authorIDs []int64) (*Book, error)
 }

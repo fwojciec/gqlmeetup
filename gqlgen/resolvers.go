@@ -52,7 +52,7 @@ func (r *mutationResolver) AgentCreate(ctx context.Context, data AgentInput) (*g
 }
 
 func (r *mutationResolver) AgentDelete(ctx context.Context, id string) (*gqlmeetup.Agent, error) {
-	agentID, err := stringToint64(id)
+	agentID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (r *mutationResolver) AgentDelete(ctx context.Context, id string) (*gqlmeet
 }
 
 func (r *mutationResolver) AgentUpdate(ctx context.Context, id string, data AgentInput) (*gqlmeetup.Agent, error) {
-	agentID, err := stringToint64(id)
+	agentID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (r *mutationResolver) AgentUpdate(ctx context.Context, id string, data Agen
 }
 
 func (r *mutationResolver) AuthorCreate(ctx context.Context, data AuthorInput) (*gqlmeetup.Author, error) {
-	agentID, err := stringToint64(data.AgentID)
+	agentID, err := stringToInt64(data.AgentID)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (r *mutationResolver) AuthorCreate(ctx context.Context, data AuthorInput) (
 }
 
 func (r *mutationResolver) AuthorDelete(ctx context.Context, id string) (*gqlmeetup.Author, error) {
-	authorID, err := stringToint64(id)
+	authorID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +106,11 @@ func (r *mutationResolver) AuthorDelete(ctx context.Context, id string) (*gqlmee
 }
 
 func (r *mutationResolver) AuthorUpdate(ctx context.Context, id string, data AuthorInput) (*gqlmeetup.Author, error) {
-	authorID, err := stringToint64(id)
+	authorID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
-	agentID, err := stringToint64(data.AgentID)
+	agentID, err := stringToInt64(data.AgentID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,19 +125,47 @@ func (r *mutationResolver) AuthorUpdate(ctx context.Context, id string, data Aut
 }
 
 func (r *mutationResolver) BookCreate(ctx context.Context, data BookInput) (*gqlmeetup.Book, error) {
-	panic("not implemented")
+	authorIDs, err := stringSliceToInt64Slice(data.AuthorIDs)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.BookCreate(ctx, gqlmeetup.Book{Title: data.Title}, authorIDs)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) BookUpdate(ctx context.Context, id string, data BookInput) (*gqlmeetup.Book, error) {
-	panic("not implemented")
+	bookID, err := stringToInt64(id)
+	if err != nil {
+		return nil, err
+	}
+	authorIDs, err := stringSliceToInt64Slice(data.AuthorIDs)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.BookUpdate(ctx, bookID, gqlmeetup.Book{Title: data.Title}, authorIDs)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) BookDelete(ctx context.Context, id string) (*gqlmeetup.Book, error) {
-	panic("not implemented")
+	bookID, err := stringToInt64(id)
+	if err != nil {
+		return nil, err
+	}
+	res, err := r.Repository.BookDelete(ctx, bookID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *queryResolver) Agent(ctx context.Context, id string) (*gqlmeetup.Agent, error) {
-	agentID, err := stringToint64(id)
+	agentID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +185,7 @@ func (r *queryResolver) Agents(ctx context.Context) ([]*gqlmeetup.Agent, error) 
 }
 
 func (r *queryResolver) Author(ctx context.Context, id string) (*gqlmeetup.Author, error) {
-	authorID, err := stringToint64(id)
+	authorID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +205,7 @@ func (r *queryResolver) Authors(ctx context.Context) ([]*gqlmeetup.Author, error
 }
 
 func (r *queryResolver) Book(ctx context.Context, id string) (*gqlmeetup.Book, error) {
-	bookID, err := stringToint64(id)
+	bookID, err := stringToInt64(id)
 	if err != nil {
 		return nil, err
 	}
@@ -221,10 +249,22 @@ func int64ToString(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
 
-func stringToint64(s string) (int64, error) {
+func stringToInt64(s string) (int64, error) {
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0, err
 	}
 	return i, nil
+}
+
+func stringSliceToInt64Slice(ss []string) ([]int64, error) {
+	res := make([]int64, len(ss))
+	for i, s := range ss {
+		id, err := stringToInt64(s)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = id
+	}
+	return res, nil
 }
