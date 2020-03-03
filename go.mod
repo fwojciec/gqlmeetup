@@ -8,7 +8,8 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/matryer/moq v0.0.0-20200125112110-7615cbe60268
+	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.0.1
-	golang.org/x/tools v0.0.0-20200301222351-066e0c02454c // indirect
+	golang.org/x/tools v0.0.0-20200302225559-9b52d559c609 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )

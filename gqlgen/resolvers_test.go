@@ -24,6 +24,16 @@ func TestAgentResolver(t *testing.T) {
 		ok(t, err) // should always be nil
 		equals(t, "1337", res)
 	})
+
+	t.Run("Authors", func(t *testing.T) {
+		t.Parallel()
+		dlMock := &mocks.DataLoaderServiceMock{
+			AuthorsListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) { return nil, nil },
+		}
+		r := &gqlgen.Resolver{DataLoaders: dlMock}
+		_, _ = r.Agent().Authors(context.Background(), &gqlmeetup.Agent{ID: 567})
+		equals(t, dlMock.AuthorsListByAgentIDCalls()[0].AgentID, int64(567))
+	})
 }
 
 func TestAuthorResolver(t *testing.T) {
@@ -234,7 +244,7 @@ func TestQueryResolver(t *testing.T) {
 	t.Run("Agents", func(t *testing.T) {
 		t.Parallel()
 		repoMock := &mocks.RepositoryMock{
-			AgentsListFunc: func(ctx context.Context) ([]*gqlmeetup.Agent, error) {
+			AgentListFunc: func(ctx context.Context) ([]*gqlmeetup.Agent, error) {
 				return nil, nil
 			},
 		}
@@ -243,7 +253,7 @@ func TestQueryResolver(t *testing.T) {
 		}
 		_, err := r.Query().Agents(context.Background())
 		ok(t, err)
-		equals(t, len(repoMock.AgentsListCalls()), 1)
+		equals(t, len(repoMock.AgentListCalls()), 1)
 	})
 
 	t.Run("Author", func(t *testing.T) {

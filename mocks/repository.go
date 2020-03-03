@@ -13,8 +13,8 @@ var (
 	lockRepositoryMockAgentCreate   sync.RWMutex
 	lockRepositoryMockAgentDelete   sync.RWMutex
 	lockRepositoryMockAgentGetByID  sync.RWMutex
+	lockRepositoryMockAgentList     sync.RWMutex
 	lockRepositoryMockAgentUpdate   sync.RWMutex
-	lockRepositoryMockAgentsList    sync.RWMutex
 	lockRepositoryMockAuthorCreate  sync.RWMutex
 	lockRepositoryMockAuthorDelete  sync.RWMutex
 	lockRepositoryMockAuthorGetByID sync.RWMutex
@@ -46,11 +46,11 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             AgentGetByIDFunc: func(ctx context.Context, id int64) (*gqlmeetup.Agent, error) {
 // 	               panic("mock out the AgentGetByID method")
 //             },
+//             AgentListFunc: func(ctx context.Context) ([]*gqlmeetup.Agent, error) {
+// 	               panic("mock out the AgentList method")
+//             },
 //             AgentUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
 // 	               panic("mock out the AgentUpdate method")
-//             },
-//             AgentsListFunc: func(ctx context.Context) ([]*gqlmeetup.Agent, error) {
-// 	               panic("mock out the AgentsList method")
 //             },
 //             AuthorCreateFunc: func(ctx context.Context, data gqlmeetup.Author) (*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorCreate method")
@@ -98,11 +98,11 @@ type RepositoryMock struct {
 	// AgentGetByIDFunc mocks the AgentGetByID method.
 	AgentGetByIDFunc func(ctx context.Context, id int64) (*gqlmeetup.Agent, error)
 
+	// AgentListFunc mocks the AgentList method.
+	AgentListFunc func(ctx context.Context) ([]*gqlmeetup.Agent, error)
+
 	// AgentUpdateFunc mocks the AgentUpdate method.
 	AgentUpdateFunc func(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error)
-
-	// AgentsListFunc mocks the AgentsList method.
-	AgentsListFunc func(ctx context.Context) ([]*gqlmeetup.Agent, error)
 
 	// AuthorCreateFunc mocks the AuthorCreate method.
 	AuthorCreateFunc func(ctx context.Context, data gqlmeetup.Author) (*gqlmeetup.Author, error)
@@ -157,6 +157,11 @@ type RepositoryMock struct {
 			// ID is the id argument value.
 			ID int64
 		}
+		// AgentList holds details about calls to the AgentList method.
+		AgentList []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+		}
 		// AgentUpdate holds details about calls to the AgentUpdate method.
 		AgentUpdate []struct {
 			// Ctx is the ctx argument value.
@@ -165,11 +170,6 @@ type RepositoryMock struct {
 			ID int64
 			// Data is the data argument value.
 			Data gqlmeetup.Agent
-		}
-		// AgentsList holds details about calls to the AgentsList method.
-		AgentsList []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
 		}
 		// AuthorCreate holds details about calls to the AuthorCreate method.
 		AuthorCreate []struct {
@@ -353,6 +353,37 @@ func (mock *RepositoryMock) AgentGetByIDCalls() []struct {
 	return calls
 }
 
+// AgentList calls AgentListFunc.
+func (mock *RepositoryMock) AgentList(ctx context.Context) ([]*gqlmeetup.Agent, error) {
+	if mock.AgentListFunc == nil {
+		panic("RepositoryMock.AgentListFunc: method is nil but Repository.AgentList was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+	}{
+		Ctx: ctx,
+	}
+	lockRepositoryMockAgentList.Lock()
+	mock.calls.AgentList = append(mock.calls.AgentList, callInfo)
+	lockRepositoryMockAgentList.Unlock()
+	return mock.AgentListFunc(ctx)
+}
+
+// AgentListCalls gets all the calls that were made to AgentList.
+// Check the length with:
+//     len(mockedRepository.AgentListCalls())
+func (mock *RepositoryMock) AgentListCalls() []struct {
+	Ctx context.Context
+} {
+	var calls []struct {
+		Ctx context.Context
+	}
+	lockRepositoryMockAgentList.RLock()
+	calls = mock.calls.AgentList
+	lockRepositoryMockAgentList.RUnlock()
+	return calls
+}
+
 // AgentUpdate calls AgentUpdateFunc.
 func (mock *RepositoryMock) AgentUpdate(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
 	if mock.AgentUpdateFunc == nil {
@@ -389,37 +420,6 @@ func (mock *RepositoryMock) AgentUpdateCalls() []struct {
 	lockRepositoryMockAgentUpdate.RLock()
 	calls = mock.calls.AgentUpdate
 	lockRepositoryMockAgentUpdate.RUnlock()
-	return calls
-}
-
-// AgentsList calls AgentsListFunc.
-func (mock *RepositoryMock) AgentsList(ctx context.Context) ([]*gqlmeetup.Agent, error) {
-	if mock.AgentsListFunc == nil {
-		panic("RepositoryMock.AgentsListFunc: method is nil but Repository.AgentsList was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-	}{
-		Ctx: ctx,
-	}
-	lockRepositoryMockAgentsList.Lock()
-	mock.calls.AgentsList = append(mock.calls.AgentsList, callInfo)
-	lockRepositoryMockAgentsList.Unlock()
-	return mock.AgentsListFunc(ctx)
-}
-
-// AgentsListCalls gets all the calls that were made to AgentsList.
-// Check the length with:
-//     len(mockedRepository.AgentsListCalls())
-func (mock *RepositoryMock) AgentsListCalls() []struct {
-	Ctx context.Context
-} {
-	var calls []struct {
-		Ctx context.Context
-	}
-	lockRepositoryMockAgentsList.RLock()
-	calls = mock.calls.AgentsList
-	lockRepositoryMockAgentsList.RUnlock()
 	return calls
 }
 

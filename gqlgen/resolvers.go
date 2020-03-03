@@ -9,7 +9,8 @@ import (
 
 // Resolver resolves a graphql query.
 type Resolver struct {
-	Repository gqlmeetup.Repository
+	Repository  gqlmeetup.Repository
+	DataLoaders gqlmeetup.DataLoaderService
 }
 
 func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, error) {
@@ -17,7 +18,7 @@ func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, e
 }
 
 func (r *agentResolver) Authors(ctx context.Context, obj *gqlmeetup.Agent) ([]*gqlmeetup.Author, error) {
-	panic("not implemented")
+	return r.DataLoaders.AuthorsListByAgentID(ctx, obj.ID)
 }
 
 func (r *authorResolver) ID(ctx context.Context, obj *gqlmeetup.Author) (string, error) {
@@ -177,7 +178,7 @@ func (r *queryResolver) Agent(ctx context.Context, id string) (*gqlmeetup.Agent,
 }
 
 func (r *queryResolver) Agents(ctx context.Context) ([]*gqlmeetup.Agent, error) {
-	agents, err := r.Repository.AgentsList(ctx)
+	agents, err := r.Repository.AgentList(ctx)
 	if err != nil {
 		return nil, err
 	}
