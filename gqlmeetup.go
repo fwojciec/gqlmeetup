@@ -14,12 +14,14 @@ type Author struct {
 	ID      int64
 	Name    string
 	AgentID int64 `json:"agent_id" db:"agent_id"`
+	BookIDs []int64
 }
 
 // Book is a book written by an author.
 type Book struct {
-	ID    int64
-	Title string
+	ID        int64
+	Title     string
+	AuthorIDs []int64
 }
 
 // BookAuthor is an associative table between books and authors.
@@ -53,11 +55,15 @@ type Repository interface {
 type DataLoaderRepository interface {
 	AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
 	AgentListByIDs(ctx context.Context, ids []int64) ([]*Agent, error)
+	BookListByAuthorIDs(ctx context.Context, authorIDs []int64) ([]*Book, error)
+	AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*Author, error)
 }
 
 // DataLoaderService provides dataloader functionality for the resolvers.
 type DataLoaderService interface {
-	Initialize(ctx context.Context) context.Context
-	AuthorListByAgentID(ctx context.Context, agentID int64) ([]*Author, error)
 	AgentGetByID(ctx context.Context, id int64) (*Agent, error)
+	AuthorListByAgentID(ctx context.Context, agentID int64) ([]*Author, error)
+	AuthorListByBookID(ctx context.Context, bookID int64) ([]*Author, error)
+	BookListByAuthorID(ctx context.Context, authorID int64) ([]*Book, error)
+	Initialize(ctx context.Context) context.Context
 }

@@ -30,7 +30,7 @@ func (r *authorResolver) Agent(ctx context.Context, obj *gqlmeetup.Author) (*gql
 }
 
 func (r *authorResolver) Books(ctx context.Context, obj *gqlmeetup.Author) ([]*gqlmeetup.Book, error) {
-	panic("not implemented")
+	return r.DataLoaders.BookListByAuthorID(ctx, obj.ID)
 }
 
 func (r *bookResolver) ID(ctx context.Context, obj *gqlmeetup.Book) (string, error) {
@@ -38,7 +38,7 @@ func (r *bookResolver) ID(ctx context.Context, obj *gqlmeetup.Book) (string, err
 }
 
 func (r *bookResolver) Authors(ctx context.Context, obj *gqlmeetup.Book) ([]*gqlmeetup.Author, error) {
-	panic("not implemented")
+	return r.DataLoaders.AuthorListByBookID(ctx, obj.ID)
 }
 
 func (r *mutationResolver) AgentCreate(ctx context.Context, data AgentInput) (*gqlmeetup.Agent, error) {

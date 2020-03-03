@@ -59,3 +59,82 @@ func TestAgentListByIDs(t *testing.T) {
 		})
 	}
 }
+
+func TestBookListByAuthorIDs(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		authorIDs []int64
+		exp       []*gqlmeetup.Book
+	}{
+		{[]int64{}, []*gqlmeetup.Book{}},
+		{[]int64{1}, []*gqlmeetup.Book{
+			{ID: 1, Title: "Test Book 1", AuthorIDs: []int64{1}},
+			{ID: 3, Title: "Test Book 3", AuthorIDs: []int64{1}},
+		}},
+		{[]int64{2}, []*gqlmeetup.Book{
+			{ID: 2, Title: "Test Book 2", AuthorIDs: []int64{2}},
+			{ID: 3, Title: "Test Book 3", AuthorIDs: []int64{2}},
+		}},
+		{[]int64{1, 2}, []*gqlmeetup.Book{
+			{ID: 1, Title: "Test Book 1", AuthorIDs: []int64{1}},
+			{ID: 2, Title: "Test Book 2", AuthorIDs: []int64{2}},
+			{ID: 3, Title: "Test Book 3", AuthorIDs: []int64{1, 2}},
+		}},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(fmt.Sprintf("%v", tc.authorIDs), func(t *testing.T) {
+			t.Parallel()
+			pgt.Runner(t, []string{"book_authors"}, func(t *testing.T, sdb *sqlx.DB) {
+				ctx := context.Background()
+				repo := &postgres.DataLoaderRepository{DB: sdb}
+				res, err := repo.BookListByAuthorIDs(ctx, tc.authorIDs)
+				for _, r := range res {
+					t.Log(*r)
+				}
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		})
+	}
+}
+
+func TestAuthorListByBookIDs(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		bookIDs []int64
+		exp     []*gqlmeetup.Author
+	}{
+		{[]int64{}, []*gqlmeetup.Author{}},
+		{[]int64{1}, []*gqlmeetup.Author{
+			{ID: 1, Name: "Test Author 1", AgentID: 1, BookIDs: []int64{1}},
+		}},
+		{[]int64{2}, []*gqlmeetup.Author{
+			{ID: 2, Name: "Test Author 2", AgentID: 2, BookIDs: []int64{2}},
+		}},
+		{[]int64{1, 2}, []*gqlmeetup.Author{
+			{ID: 1, Name: "Test Author 1", AgentID: 1, BookIDs: []int64{1}},
+			{ID: 2, Name: "Test Author 2", AgentID: 2, BookIDs: []int64{2}},
+		}},
+		{[]int64{1, 2, 3}, []*gqlmeetup.Author{
+			{ID: 1, Name: "Test Author 1", AgentID: 1, BookIDs: []int64{1, 3}},
+			{ID: 2, Name: "Test Author 2", AgentID: 2, BookIDs: []int64{2, 3}},
+		}},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(fmt.Sprintf("%v", tc.bookIDs), func(t *testing.T) {
+			t.Parallel()
+			pgt.Runner(t, []string{"book_authors"}, func(t *testing.T, sdb *sqlx.DB) {
+				ctx := context.Background()
+				repo := &postgres.DataLoaderRepository{DB: sdb}
+				res, err := repo.AuthorListByBookIDs(ctx, tc.bookIDs)
+				for _, r := range res {
+					t.Log(*r)
+				}
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		})
+	}
+}

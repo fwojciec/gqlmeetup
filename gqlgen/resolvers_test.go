@@ -46,6 +46,16 @@ func TestAuthorResolver(t *testing.T) {
 		ok(t, err) // should always be nil
 		equals(t, "1337", res)
 	})
+
+	t.Run("Books", func(t *testing.T) {
+		t.Parallel()
+		dlMock := &mocks.DataLoaderServiceMock{
+			BookListByAuthorIDFunc: func(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error) { return nil, nil },
+		}
+		r := &gqlgen.Resolver{DataLoaders: dlMock}
+		_, _ = r.Author().Books(context.Background(), &gqlmeetup.Author{ID: 876})
+		equals(t, dlMock.BookListByAuthorIDCalls()[0].AuthorID, int64(876))
+	})
 }
 
 func TestBookResolver(t *testing.T) {
@@ -57,6 +67,16 @@ func TestBookResolver(t *testing.T) {
 		res, err := r.Book().ID(context.Background(), &gqlmeetup.Book{ID: 1337})
 		ok(t, err) // should always be nil
 		equals(t, "1337", res)
+	})
+
+	t.Run("Authors", func(t *testing.T) {
+		t.Parallel()
+		dlMock := &mocks.DataLoaderServiceMock{
+			AuthorListByBookIDFunc: func(ctx context.Context, bookID int64) ([]*gqlmeetup.Author, error) { return nil, nil },
+		}
+		r := &gqlgen.Resolver{DataLoaders: dlMock}
+		_, _ = r.Book().Authors(context.Background(), &gqlmeetup.Book{ID: 234})
+		equals(t, dlMock.AuthorListByBookIDCalls()[0].BookID, int64(234))
 	})
 }
 

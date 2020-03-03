@@ -12,6 +12,8 @@ import (
 var (
 	lockDataLoaderServiceMockAgentGetByID        sync.RWMutex
 	lockDataLoaderServiceMockAuthorListByAgentID sync.RWMutex
+	lockDataLoaderServiceMockAuthorListByBookID  sync.RWMutex
+	lockDataLoaderServiceMockBookListByAuthorID  sync.RWMutex
 	lockDataLoaderServiceMockInitialize          sync.RWMutex
 )
 
@@ -31,6 +33,12 @@ var _ gqlmeetup.DataLoaderService = &DataLoaderServiceMock{}
 //             AuthorListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorListByAgentID method")
 //             },
+//             AuthorListByBookIDFunc: func(ctx context.Context, bookID int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByBookID method")
+//             },
+//             BookListByAuthorIDFunc: func(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error) {
+// 	               panic("mock out the BookListByAuthorID method")
+//             },
 //             InitializeFunc: func(ctx context.Context) context.Context {
 // 	               panic("mock out the Initialize method")
 //             },
@@ -46,6 +54,12 @@ type DataLoaderServiceMock struct {
 
 	// AuthorListByAgentIDFunc mocks the AuthorListByAgentID method.
 	AuthorListByAgentIDFunc func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error)
+
+	// AuthorListByBookIDFunc mocks the AuthorListByBookID method.
+	AuthorListByBookIDFunc func(ctx context.Context, bookID int64) ([]*gqlmeetup.Author, error)
+
+	// BookListByAuthorIDFunc mocks the BookListByAuthorID method.
+	BookListByAuthorIDFunc func(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error)
 
 	// InitializeFunc mocks the Initialize method.
 	InitializeFunc func(ctx context.Context) context.Context
@@ -65,6 +79,20 @@ type DataLoaderServiceMock struct {
 			Ctx context.Context
 			// AgentID is the agentID argument value.
 			AgentID int64
+		}
+		// AuthorListByBookID holds details about calls to the AuthorListByBookID method.
+		AuthorListByBookID []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// BookID is the bookID argument value.
+			BookID int64
+		}
+		// BookListByAuthorID holds details about calls to the BookListByAuthorID method.
+		BookListByAuthorID []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// AuthorID is the authorID argument value.
+			AuthorID int64
 		}
 		// Initialize holds details about calls to the Initialize method.
 		Initialize []struct {
@@ -141,6 +169,76 @@ func (mock *DataLoaderServiceMock) AuthorListByAgentIDCalls() []struct {
 	lockDataLoaderServiceMockAuthorListByAgentID.RLock()
 	calls = mock.calls.AuthorListByAgentID
 	lockDataLoaderServiceMockAuthorListByAgentID.RUnlock()
+	return calls
+}
+
+// AuthorListByBookID calls AuthorListByBookIDFunc.
+func (mock *DataLoaderServiceMock) AuthorListByBookID(ctx context.Context, bookID int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByBookIDFunc == nil {
+		panic("DataLoaderServiceMock.AuthorListByBookIDFunc: method is nil but DataLoaderService.AuthorListByBookID was just called")
+	}
+	callInfo := struct {
+		Ctx    context.Context
+		BookID int64
+	}{
+		Ctx:    ctx,
+		BookID: bookID,
+	}
+	lockDataLoaderServiceMockAuthorListByBookID.Lock()
+	mock.calls.AuthorListByBookID = append(mock.calls.AuthorListByBookID, callInfo)
+	lockDataLoaderServiceMockAuthorListByBookID.Unlock()
+	return mock.AuthorListByBookIDFunc(ctx, bookID)
+}
+
+// AuthorListByBookIDCalls gets all the calls that were made to AuthorListByBookID.
+// Check the length with:
+//     len(mockedDataLoaderService.AuthorListByBookIDCalls())
+func (mock *DataLoaderServiceMock) AuthorListByBookIDCalls() []struct {
+	Ctx    context.Context
+	BookID int64
+} {
+	var calls []struct {
+		Ctx    context.Context
+		BookID int64
+	}
+	lockDataLoaderServiceMockAuthorListByBookID.RLock()
+	calls = mock.calls.AuthorListByBookID
+	lockDataLoaderServiceMockAuthorListByBookID.RUnlock()
+	return calls
+}
+
+// BookListByAuthorID calls BookListByAuthorIDFunc.
+func (mock *DataLoaderServiceMock) BookListByAuthorID(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error) {
+	if mock.BookListByAuthorIDFunc == nil {
+		panic("DataLoaderServiceMock.BookListByAuthorIDFunc: method is nil but DataLoaderService.BookListByAuthorID was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		AuthorID int64
+	}{
+		Ctx:      ctx,
+		AuthorID: authorID,
+	}
+	lockDataLoaderServiceMockBookListByAuthorID.Lock()
+	mock.calls.BookListByAuthorID = append(mock.calls.BookListByAuthorID, callInfo)
+	lockDataLoaderServiceMockBookListByAuthorID.Unlock()
+	return mock.BookListByAuthorIDFunc(ctx, authorID)
+}
+
+// BookListByAuthorIDCalls gets all the calls that were made to BookListByAuthorID.
+// Check the length with:
+//     len(mockedDataLoaderService.BookListByAuthorIDCalls())
+func (mock *DataLoaderServiceMock) BookListByAuthorIDCalls() []struct {
+	Ctx      context.Context
+	AuthorID int64
+} {
+	var calls []struct {
+		Ctx      context.Context
+		AuthorID int64
+	}
+	lockDataLoaderServiceMockBookListByAuthorID.RLock()
+	calls = mock.calls.BookListByAuthorID
+	lockDataLoaderServiceMockBookListByAuthorID.RUnlock()
 	return calls
 }
 

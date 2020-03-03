@@ -74,16 +74,79 @@ func TestAgentListByIDs(t *testing.T) {
 	})
 }
 
+func TestBookListByAuthorID(t *testing.T) {
+	t.Parallel()
+	mock := &mocks.DataLoaderRepositoryMock{
+		BookListByAuthorIDsFunc: func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error) {
+			return []*gqlmeetup.Book{&testBook1, &testBook2, &testBook3}, nil
+		},
+	}
+	dls := dataloaden.DataLoaderService{Repository: mock}
+	ctx := dls.Initialize(context.Background())
+	t.Run("concurrent requests", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			authorID int64
+			exp      []*gqlmeetup.Book
+		}{
+			{1, []*gqlmeetup.Book{&testBook1, &testBook3}},
+			{2, []*gqlmeetup.Book{&testBook2, &testBook3}},
+		}
+		for _, tc := range tests {
+			tc := tc
+			t.Run(fmt.Sprintf("Author ID: %d", tc.authorID), func(t *testing.T) {
+				t.Parallel()
+				res, err := dls.BookListByAuthorID(ctx, tc.authorID)
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		}
+	})
+}
+
+func TestAuthorListByBookID(t *testing.T) {
+	t.Parallel()
+	mock := &mocks.DataLoaderRepositoryMock{
+		AuthorListByBookIDsFunc: func(ctx context.Context, bookIDs []int64) ([]*gqlmeetup.Author, error) {
+			return []*gqlmeetup.Author{&testAuthor1, &testAuthor2}, nil
+		},
+	}
+	dls := dataloaden.DataLoaderService{Repository: mock}
+	ctx := dls.Initialize(context.Background())
+	t.Run("concurrent requests", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			bookID int64
+			exp    []*gqlmeetup.Author
+		}{
+			{1, []*gqlmeetup.Author{&testAuthor1}},
+			{2, []*gqlmeetup.Author{&testAuthor2}},
+			{3, []*gqlmeetup.Author{&testAuthor1, &testAuthor2}},
+		}
+		for _, tc := range tests {
+			tc := tc
+			t.Run(fmt.Sprintf("Book ID: %d", tc.bookID), func(t *testing.T) {
+				t.Parallel()
+				res, err := dls.AuthorListByBookID(ctx, tc.bookID)
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		}
+	})
+}
+
 var (
 	testAuthor1 = gqlmeetup.Author{
 		ID:      1,
 		Name:    "Test Author 1",
 		AgentID: 1,
+		BookIDs: []int64{1, 3},
 	}
 	testAuthor2 = gqlmeetup.Author{
 		ID:      2,
 		Name:    "Test Author 2",
 		AgentID: 2,
+		BookIDs: []int64{2, 3},
 	}
 	testAuthor3 = gqlmeetup.Author{
 		ID:      3,
@@ -104,6 +167,21 @@ var (
 		ID:    3,
 		Name:  "Test Agent 3",
 		Email: "agent3@test.com",
+	}
+	testBook1 = gqlmeetup.Book{
+		ID:        1,
+		Title:     "Test Book 1",
+		AuthorIDs: []int64{1},
+	}
+	testBook2 = gqlmeetup.Book{
+		ID:        2,
+		Title:     "Test Book 2",
+		AuthorIDs: []int64{2},
+	}
+	testBook3 = gqlmeetup.Book{
+		ID:        3,
+		Title:     "Test Book 3",
+		AuthorIDs: []int64{1, 2},
 	}
 )
 
