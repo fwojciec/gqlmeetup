@@ -54,13 +54,13 @@ func (r *Repository) AgentGetByID(ctx context.Context, id int64) (*gqlmeetup.Age
 	return res, nil
 }
 
-const AgentListQuery = `
+const agentListQuery = `
 SELECT * FROM agents;`
 
 // AgentList lists all agents.
 func (r *Repository) AgentList(ctx context.Context) ([]*gqlmeetup.Agent, error) {
 	res := make([]*gqlmeetup.Agent, 0)
-	if err := r.DB.SelectContext(ctx, &res, AgentListQuery); err != nil {
+	if err := r.DB.SelectContext(ctx, &res, agentListQuery); err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -117,13 +117,13 @@ func (r *Repository) AuthorGetByID(ctx context.Context, id int64) (*gqlmeetup.Au
 	return res, nil
 }
 
-const authorsListQuery = `
+const authorListQuery = `
 SELECT * FROM authors;`
 
-// AuthorsList lists all agents.
-func (r *Repository) AuthorsList(ctx context.Context) ([]*gqlmeetup.Author, error) {
+// AuthorList lists all agents.
+func (r *Repository) AuthorList(ctx context.Context) ([]*gqlmeetup.Author, error) {
 	res := make([]*gqlmeetup.Author, 0)
-	if err := r.DB.SelectContext(ctx, &res, authorsListQuery); err != nil {
+	if err := r.DB.SelectContext(ctx, &res, authorListQuery); err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -188,13 +188,13 @@ func (r *Repository) BookGetByID(ctx context.Context, id int64) (*gqlmeetup.Book
 	return res, nil
 }
 
-const booksListQuery = `
+const bookListQuery = `
 SELECT * FROM books;`
 
-// BooksList lists all books.
-func (r *Repository) BooksList(ctx context.Context) ([]*gqlmeetup.Book, error) {
+// BookList lists all books.
+func (r *Repository) BookList(ctx context.Context) ([]*gqlmeetup.Book, error) {
 	res := make([]*gqlmeetup.Book, 0)
-	if err := r.DB.SelectContext(ctx, &res, booksListQuery); err != nil {
+	if err := r.DB.SelectContext(ctx, &res, bookListQuery); err != nil {
 		return nil, err
 	}
 	return res, nil

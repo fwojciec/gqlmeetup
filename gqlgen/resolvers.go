@@ -18,7 +18,7 @@ func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, e
 }
 
 func (r *agentResolver) Authors(ctx context.Context, obj *gqlmeetup.Agent) ([]*gqlmeetup.Author, error) {
-	return r.DataLoaders.AuthorsListByAgentID(ctx, obj.ID)
+	return r.DataLoaders.AuthorListByAgentID(ctx, obj.ID)
 }
 
 func (r *authorResolver) ID(ctx context.Context, obj *gqlmeetup.Author) (string, error) {
@@ -26,7 +26,7 @@ func (r *authorResolver) ID(ctx context.Context, obj *gqlmeetup.Author) (string,
 }
 
 func (r *authorResolver) Agent(ctx context.Context, obj *gqlmeetup.Author) (*gqlmeetup.Agent, error) {
-	panic("not implemented")
+	return r.DataLoaders.AgentGetByID(ctx, obj.AgentID)
 }
 
 func (r *authorResolver) Books(ctx context.Context, obj *gqlmeetup.Author) ([]*gqlmeetup.Book, error) {
@@ -198,7 +198,7 @@ func (r *queryResolver) Author(ctx context.Context, id string) (*gqlmeetup.Autho
 }
 
 func (r *queryResolver) Authors(ctx context.Context) ([]*gqlmeetup.Author, error) {
-	authors, err := r.Repository.AuthorsList(ctx)
+	authors, err := r.Repository.AuthorList(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (r *queryResolver) Book(ctx context.Context, id string) (*gqlmeetup.Book, e
 }
 
 func (r *queryResolver) Books(ctx context.Context) ([]*gqlmeetup.Book, error) {
-	books, err := r.Repository.BooksList(ctx)
+	books, err := r.Repository.BookList(ctx)
 	if err != nil {
 		return nil, err
 	}

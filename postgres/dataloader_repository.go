@@ -15,15 +15,28 @@ type DataLoaderRepository struct {
 
 var _ gqlmeetup.DataLoaderRepository = (*DataLoaderRepository)(nil)
 
-const authorsListByAgentIDsQuery = `
+const authorListByAgentIDsQuery = `
 SELECT authors.* FROM authors, agents
 WHERE authors.agent_id = agents.id AND agents.id = ANY($1::bigint[]);
 `
 
-// AuthorsListByAgentIDs lists authors for a list of matching agent ids.
-func (r *DataLoaderRepository) AuthorsListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+// AuthorListByAgentIDs lists authors for a list of matching agent ids.
+func (r *DataLoaderRepository) AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
 	res := make([]*gqlmeetup.Author, 0)
-	if err := r.DB.SelectContext(ctx, &res, authorsListByAgentIDsQuery, pq.Array(agentIDs)); err != nil {
+	if err := r.DB.SelectContext(ctx, &res, authorListByAgentIDsQuery, pq.Array(agentIDs)); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+const agentListByIDsQuery = `
+SELECT * FROM agents WHERE id = ANY($1::bigint[]);
+`
+
+// AgentListByIDs lists agents for a list of matching ids.
+func (r *DataLoaderRepository) AgentListByIDs(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+	res := make([]*gqlmeetup.Agent, 0)
+	if err := r.DB.SelectContext(ctx, &res, agentListByIDsQuery, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 	return res, nil

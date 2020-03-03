@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestAuthorsListByAgentIDs(t *testing.T) {
+func TestAuthorListByAgentIDs(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		agentIDs []int64
@@ -27,7 +27,32 @@ func TestAuthorsListByAgentIDs(t *testing.T) {
 			pgt.Runner(t, []string{"authors"}, func(t *testing.T, sdb *sqlx.DB) {
 				ctx := context.Background()
 				repo := &postgres.DataLoaderRepository{DB: sdb}
-				res, err := repo.AuthorsListByAgentIDs(ctx, tc.agentIDs)
+				res, err := repo.AuthorListByAgentIDs(ctx, tc.agentIDs)
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		})
+	}
+}
+
+func TestAgentListByIDs(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		ids []int64
+		exp []*gqlmeetup.Agent
+	}{
+		{[]int64{}, []*gqlmeetup.Agent{}},
+		{[]int64{1}, []*gqlmeetup.Agent{&testAgent1}},
+		{[]int64{1, 2}, []*gqlmeetup.Agent{&testAgent1, &testAgent2}},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(fmt.Sprintf("%v", tc.ids), func(t *testing.T) {
+			t.Parallel()
+			pgt.Runner(t, []string{"agents"}, func(t *testing.T, sdb *sqlx.DB) {
+				ctx := context.Background()
+				repo := &postgres.DataLoaderRepository{DB: sdb}
+				res, err := repo.AgentListByIDs(ctx, tc.ids)
 				ok(t, err)
 				equals(t, tc.exp, res)
 			})

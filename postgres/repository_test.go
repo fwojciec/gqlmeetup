@@ -129,11 +129,11 @@ func TestAuthorGetByID(t *testing.T) {
 	})
 }
 
-func TestAuthorsList(t *testing.T) {
+func TestAuthorList(t *testing.T) {
 	t.Parallel()
 	pgt.Runner(t, []string{"authors"}, func(t *testing.T, sdb *sqlx.DB) {
 		repo := &postgres.Repository{DB: sdb}
-		res, err := repo.AuthorsList(context.Background())
+		res, err := repo.AuthorList(context.Background())
 		ok(t, err)
 		equals(t, []*gqlmeetup.Author{&testAuthor1, &testAuthor2}, res)
 	})
@@ -212,11 +212,11 @@ func TestBookGetByID(t *testing.T) {
 	})
 }
 
-func TestBooksList(t *testing.T) {
+func TestBookList(t *testing.T) {
 	t.Parallel()
 	pgt.Runner(t, []string{"books"}, func(t *testing.T, sdb *sqlx.DB) {
 		repo := &postgres.Repository{DB: sdb}
-		res, err := repo.BooksList(context.Background())
+		res, err := repo.BookList(context.Background())
 		ok(t, err)
 		equals(t, []*gqlmeetup.Book{&testBook1, &testBook2, &testBook3}, res)
 	})

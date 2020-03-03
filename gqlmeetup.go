@@ -39,23 +39,25 @@ type Repository interface {
 	AuthorCreate(ctx context.Context, data Author) (*Author, error)
 	AuthorDelete(ctx context.Context, id int64) (*Author, error)
 	AuthorGetByID(ctx context.Context, id int64) (*Author, error)
-	AuthorsList(ctx context.Context) ([]*Author, error)
+	AuthorList(ctx context.Context) ([]*Author, error)
 	AuthorUpdate(ctx context.Context, id int64, data Author) (*Author, error)
 	BookCreate(ctx context.Context, data Book, authorIDs []int64) (*Book, error)
 	BookDelete(ctx context.Context, id int64) (*Book, error)
 	BookGetByID(ctx context.Context, id int64) (*Book, error)
-	BooksList(ctx context.Context) ([]*Book, error)
+	BookList(ctx context.Context) ([]*Book, error)
 	BookUpdate(ctx context.Context, id int64, data Book, authorIDs []int64) (*Book, error)
 }
 
 // DataLoaderRepository represents database functionality used by the dataloader
 // service.
 type DataLoaderRepository interface {
-	AuthorsListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
+	AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
+	AgentListByIDs(ctx context.Context, ids []int64) ([]*Agent, error)
 }
 
 // DataLoaderService provides dataloader functionality for the resolvers.
 type DataLoaderService interface {
 	Initialize(ctx context.Context) context.Context
-	AuthorsListByAgentID(ctx context.Context, agentID int64) ([]*Author, error)
+	AuthorListByAgentID(ctx context.Context, agentID int64) ([]*Author, error)
+	AgentGetByID(ctx context.Context, id int64) (*Agent, error)
 }

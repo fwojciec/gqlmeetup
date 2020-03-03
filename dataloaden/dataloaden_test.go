@@ -13,10 +13,10 @@ import (
 	"github.com/fwojciec/gqlmeetup/mocks"
 )
 
-func TestAuthorsListByAgentID(t *testing.T) {
+func TestAuthorListByAgentID(t *testing.T) {
 	t.Parallel()
 	mock := &mocks.DataLoaderRepositoryMock{
-		AuthorsListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+		AuthorListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
 			return []*gqlmeetup.Author{&testAuthor1, &testAuthor2, &testAuthor3}, nil
 		},
 	}
@@ -35,7 +35,38 @@ func TestAuthorsListByAgentID(t *testing.T) {
 			tc := tc
 			t.Run(fmt.Sprintf("Agent ID: %d", tc.agentID), func(t *testing.T) {
 				t.Parallel()
-				res, err := dls.AuthorsListByAgentID(ctx, tc.agentID)
+				res, err := dls.AuthorListByAgentID(ctx, tc.agentID)
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		}
+	})
+}
+
+func TestAgentListByIDs(t *testing.T) {
+	t.Parallel()
+	mock := &mocks.DataLoaderRepositoryMock{
+		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+			return []*gqlmeetup.Agent{&testAgent1, &testAgent2, &testAgent3}, nil
+		},
+	}
+	dls := dataloaden.DataLoaderService{Repository: mock}
+	ctx := dls.Initialize(context.Background())
+	t.Run("concurrent requests", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			id  int64
+			exp *gqlmeetup.Agent
+		}{
+			{1, &testAgent1},
+			{2, &testAgent2},
+			{3, &testAgent3},
+		}
+		for _, tc := range tests {
+			tc := tc
+			t.Run(fmt.Sprintf("Agent ID: %d", tc.id), func(t *testing.T) {
+				t.Parallel()
+				res, err := dls.AgentGetByID(ctx, tc.id)
 				ok(t, err)
 				equals(t, tc.exp, res)
 			})
@@ -58,6 +89,21 @@ var (
 		ID:      3,
 		Name:    "Test Author 3",
 		AgentID: 2,
+	}
+	testAgent1 = gqlmeetup.Agent{
+		ID:    1,
+		Name:  "Test Agent 1",
+		Email: "agent1@test.com",
+	}
+	testAgent2 = gqlmeetup.Agent{
+		ID:    2,
+		Name:  "Test Agent 2",
+		Email: "agent2@test.com",
+	}
+	testAgent3 = gqlmeetup.Agent{
+		ID:    3,
+		Name:  "Test Agent 3",
+		Email: "agent3@test.com",
 	}
 )
 

@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	lockDataLoaderRepositoryMockAuthorsListByAgentIDs sync.RWMutex
+	lockDataLoaderRepositoryMockAgentListByIDs       sync.RWMutex
+	lockDataLoaderRepositoryMockAuthorListByAgentIDs sync.RWMutex
 )
 
 // Ensure, that DataLoaderRepositoryMock does implement gqlmeetup.DataLoaderRepository.
@@ -23,8 +24,11 @@ var _ gqlmeetup.DataLoaderRepository = &DataLoaderRepositoryMock{}
 //
 //         // make and configure a mocked gqlmeetup.DataLoaderRepository
 //         mockedDataLoaderRepository := &DataLoaderRepositoryMock{
-//             AuthorsListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
-// 	               panic("mock out the AuthorsListByAgentIDs method")
+//             AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+// 	               panic("mock out the AgentListByIDs method")
+//             },
+//             AuthorListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByAgentIDs method")
 //             },
 //         }
 //
@@ -33,13 +37,23 @@ var _ gqlmeetup.DataLoaderRepository = &DataLoaderRepositoryMock{}
 //
 //     }
 type DataLoaderRepositoryMock struct {
-	// AuthorsListByAgentIDsFunc mocks the AuthorsListByAgentIDs method.
-	AuthorsListByAgentIDsFunc func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error)
+	// AgentListByIDsFunc mocks the AgentListByIDs method.
+	AgentListByIDsFunc func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error)
+
+	// AuthorListByAgentIDsFunc mocks the AuthorListByAgentIDs method.
+	AuthorListByAgentIDsFunc func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// AuthorsListByAgentIDs holds details about calls to the AuthorsListByAgentIDs method.
-		AuthorsListByAgentIDs []struct {
+		// AgentListByIDs holds details about calls to the AgentListByIDs method.
+		AgentListByIDs []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Ids is the ids argument value.
+			Ids []int64
+		}
+		// AuthorListByAgentIDs holds details about calls to the AuthorListByAgentIDs method.
+		AuthorListByAgentIDs []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// AgentIDs is the agentIDs argument value.
@@ -48,10 +62,45 @@ type DataLoaderRepositoryMock struct {
 	}
 }
 
-// AuthorsListByAgentIDs calls AuthorsListByAgentIDsFunc.
-func (mock *DataLoaderRepositoryMock) AuthorsListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
-	if mock.AuthorsListByAgentIDsFunc == nil {
-		panic("DataLoaderRepositoryMock.AuthorsListByAgentIDsFunc: method is nil but DataLoaderRepository.AuthorsListByAgentIDs was just called")
+// AgentListByIDs calls AgentListByIDsFunc.
+func (mock *DataLoaderRepositoryMock) AgentListByIDs(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+	if mock.AgentListByIDsFunc == nil {
+		panic("DataLoaderRepositoryMock.AgentListByIDsFunc: method is nil but DataLoaderRepository.AgentListByIDs was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		Ids []int64
+	}{
+		Ctx: ctx,
+		Ids: ids,
+	}
+	lockDataLoaderRepositoryMockAgentListByIDs.Lock()
+	mock.calls.AgentListByIDs = append(mock.calls.AgentListByIDs, callInfo)
+	lockDataLoaderRepositoryMockAgentListByIDs.Unlock()
+	return mock.AgentListByIDsFunc(ctx, ids)
+}
+
+// AgentListByIDsCalls gets all the calls that were made to AgentListByIDs.
+// Check the length with:
+//     len(mockedDataLoaderRepository.AgentListByIDsCalls())
+func (mock *DataLoaderRepositoryMock) AgentListByIDsCalls() []struct {
+	Ctx context.Context
+	Ids []int64
+} {
+	var calls []struct {
+		Ctx context.Context
+		Ids []int64
+	}
+	lockDataLoaderRepositoryMockAgentListByIDs.RLock()
+	calls = mock.calls.AgentListByIDs
+	lockDataLoaderRepositoryMockAgentListByIDs.RUnlock()
+	return calls
+}
+
+// AuthorListByAgentIDs calls AuthorListByAgentIDsFunc.
+func (mock *DataLoaderRepositoryMock) AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByAgentIDsFunc == nil {
+		panic("DataLoaderRepositoryMock.AuthorListByAgentIDsFunc: method is nil but DataLoaderRepository.AuthorListByAgentIDs was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
@@ -60,16 +109,16 @@ func (mock *DataLoaderRepositoryMock) AuthorsListByAgentIDs(ctx context.Context,
 		Ctx:      ctx,
 		AgentIDs: agentIDs,
 	}
-	lockDataLoaderRepositoryMockAuthorsListByAgentIDs.Lock()
-	mock.calls.AuthorsListByAgentIDs = append(mock.calls.AuthorsListByAgentIDs, callInfo)
-	lockDataLoaderRepositoryMockAuthorsListByAgentIDs.Unlock()
-	return mock.AuthorsListByAgentIDsFunc(ctx, agentIDs)
+	lockDataLoaderRepositoryMockAuthorListByAgentIDs.Lock()
+	mock.calls.AuthorListByAgentIDs = append(mock.calls.AuthorListByAgentIDs, callInfo)
+	lockDataLoaderRepositoryMockAuthorListByAgentIDs.Unlock()
+	return mock.AuthorListByAgentIDsFunc(ctx, agentIDs)
 }
 
-// AuthorsListByAgentIDsCalls gets all the calls that were made to AuthorsListByAgentIDs.
+// AuthorListByAgentIDsCalls gets all the calls that were made to AuthorListByAgentIDs.
 // Check the length with:
-//     len(mockedDataLoaderRepository.AuthorsListByAgentIDsCalls())
-func (mock *DataLoaderRepositoryMock) AuthorsListByAgentIDsCalls() []struct {
+//     len(mockedDataLoaderRepository.AuthorListByAgentIDsCalls())
+func (mock *DataLoaderRepositoryMock) AuthorListByAgentIDsCalls() []struct {
 	Ctx      context.Context
 	AgentIDs []int64
 } {
@@ -77,8 +126,8 @@ func (mock *DataLoaderRepositoryMock) AuthorsListByAgentIDsCalls() []struct {
 		Ctx      context.Context
 		AgentIDs []int64
 	}
-	lockDataLoaderRepositoryMockAuthorsListByAgentIDs.RLock()
-	calls = mock.calls.AuthorsListByAgentIDs
-	lockDataLoaderRepositoryMockAuthorsListByAgentIDs.RUnlock()
+	lockDataLoaderRepositoryMockAuthorListByAgentIDs.RLock()
+	calls = mock.calls.AuthorListByAgentIDs
+	lockDataLoaderRepositoryMockAuthorListByAgentIDs.RUnlock()
 	return calls
 }

@@ -28,11 +28,11 @@ func TestAgentResolver(t *testing.T) {
 	t.Run("Authors", func(t *testing.T) {
 		t.Parallel()
 		dlMock := &mocks.DataLoaderServiceMock{
-			AuthorsListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) { return nil, nil },
+			AuthorListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) { return nil, nil },
 		}
 		r := &gqlgen.Resolver{DataLoaders: dlMock}
 		_, _ = r.Agent().Authors(context.Background(), &gqlmeetup.Agent{ID: 567})
-		equals(t, dlMock.AuthorsListByAgentIDCalls()[0].AgentID, int64(567))
+		equals(t, dlMock.AuthorListByAgentIDCalls()[0].AgentID, int64(567))
 	})
 }
 
@@ -301,7 +301,7 @@ func TestQueryResolver(t *testing.T) {
 	t.Run("Authors", func(t *testing.T) {
 		t.Parallel()
 		repoMock := &mocks.RepositoryMock{
-			AuthorsListFunc: func(ctx context.Context) ([]*gqlmeetup.Author, error) {
+			AuthorListFunc: func(ctx context.Context) ([]*gqlmeetup.Author, error) {
 				return nil, nil
 			},
 		}
@@ -310,7 +310,7 @@ func TestQueryResolver(t *testing.T) {
 		}
 		_, err := r.Query().Authors(context.Background())
 		ok(t, err)
-		equals(t, len(repoMock.AuthorsListCalls()), 1)
+		equals(t, len(repoMock.AuthorListCalls()), 1)
 	})
 
 	t.Run("Book", func(t *testing.T) {
@@ -358,7 +358,7 @@ func TestQueryResolver(t *testing.T) {
 	t.Run("Books", func(t *testing.T) {
 		t.Parallel()
 		repoMock := &mocks.RepositoryMock{
-			BooksListFunc: func(ctx context.Context) ([]*gqlmeetup.Book, error) {
+			BookListFunc: func(ctx context.Context) ([]*gqlmeetup.Book, error) {
 				return nil, nil
 			},
 		}
@@ -367,7 +367,7 @@ func TestQueryResolver(t *testing.T) {
 		}
 		_, err := r.Query().Books(context.Background())
 		ok(t, err)
-		equals(t, len(repoMock.BooksListCalls()), 1)
+		equals(t, len(repoMock.BookListCalls()), 1)
 	})
 }
 

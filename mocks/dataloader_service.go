@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	lockDataLoaderServiceMockAuthorsListByAgentID sync.RWMutex
-	lockDataLoaderServiceMockInitialize           sync.RWMutex
+	lockDataLoaderServiceMockAgentGetByID        sync.RWMutex
+	lockDataLoaderServiceMockAuthorListByAgentID sync.RWMutex
+	lockDataLoaderServiceMockInitialize          sync.RWMutex
 )
 
 // Ensure, that DataLoaderServiceMock does implement gqlmeetup.DataLoaderService.
@@ -24,8 +25,11 @@ var _ gqlmeetup.DataLoaderService = &DataLoaderServiceMock{}
 //
 //         // make and configure a mocked gqlmeetup.DataLoaderService
 //         mockedDataLoaderService := &DataLoaderServiceMock{
-//             AuthorsListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
-// 	               panic("mock out the AuthorsListByAgentID method")
+//             AgentGetByIDFunc: func(ctx context.Context, id int64) (*gqlmeetup.Agent, error) {
+// 	               panic("mock out the AgentGetByID method")
+//             },
+//             AuthorListByAgentIDFunc: func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByAgentID method")
 //             },
 //             InitializeFunc: func(ctx context.Context) context.Context {
 // 	               panic("mock out the Initialize method")
@@ -37,16 +41,26 @@ var _ gqlmeetup.DataLoaderService = &DataLoaderServiceMock{}
 //
 //     }
 type DataLoaderServiceMock struct {
-	// AuthorsListByAgentIDFunc mocks the AuthorsListByAgentID method.
-	AuthorsListByAgentIDFunc func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error)
+	// AgentGetByIDFunc mocks the AgentGetByID method.
+	AgentGetByIDFunc func(ctx context.Context, id int64) (*gqlmeetup.Agent, error)
+
+	// AuthorListByAgentIDFunc mocks the AuthorListByAgentID method.
+	AuthorListByAgentIDFunc func(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error)
 
 	// InitializeFunc mocks the Initialize method.
 	InitializeFunc func(ctx context.Context) context.Context
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// AuthorsListByAgentID holds details about calls to the AuthorsListByAgentID method.
-		AuthorsListByAgentID []struct {
+		// AgentGetByID holds details about calls to the AgentGetByID method.
+		AgentGetByID []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// ID is the id argument value.
+			ID int64
+		}
+		// AuthorListByAgentID holds details about calls to the AuthorListByAgentID method.
+		AuthorListByAgentID []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// AgentID is the agentID argument value.
@@ -60,10 +74,45 @@ type DataLoaderServiceMock struct {
 	}
 }
 
-// AuthorsListByAgentID calls AuthorsListByAgentIDFunc.
-func (mock *DataLoaderServiceMock) AuthorsListByAgentID(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
-	if mock.AuthorsListByAgentIDFunc == nil {
-		panic("DataLoaderServiceMock.AuthorsListByAgentIDFunc: method is nil but DataLoaderService.AuthorsListByAgentID was just called")
+// AgentGetByID calls AgentGetByIDFunc.
+func (mock *DataLoaderServiceMock) AgentGetByID(ctx context.Context, id int64) (*gqlmeetup.Agent, error) {
+	if mock.AgentGetByIDFunc == nil {
+		panic("DataLoaderServiceMock.AgentGetByIDFunc: method is nil but DataLoaderService.AgentGetByID was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		ID  int64
+	}{
+		Ctx: ctx,
+		ID:  id,
+	}
+	lockDataLoaderServiceMockAgentGetByID.Lock()
+	mock.calls.AgentGetByID = append(mock.calls.AgentGetByID, callInfo)
+	lockDataLoaderServiceMockAgentGetByID.Unlock()
+	return mock.AgentGetByIDFunc(ctx, id)
+}
+
+// AgentGetByIDCalls gets all the calls that were made to AgentGetByID.
+// Check the length with:
+//     len(mockedDataLoaderService.AgentGetByIDCalls())
+func (mock *DataLoaderServiceMock) AgentGetByIDCalls() []struct {
+	Ctx context.Context
+	ID  int64
+} {
+	var calls []struct {
+		Ctx context.Context
+		ID  int64
+	}
+	lockDataLoaderServiceMockAgentGetByID.RLock()
+	calls = mock.calls.AgentGetByID
+	lockDataLoaderServiceMockAgentGetByID.RUnlock()
+	return calls
+}
+
+// AuthorListByAgentID calls AuthorListByAgentIDFunc.
+func (mock *DataLoaderServiceMock) AuthorListByAgentID(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByAgentIDFunc == nil {
+		panic("DataLoaderServiceMock.AuthorListByAgentIDFunc: method is nil but DataLoaderService.AuthorListByAgentID was just called")
 	}
 	callInfo := struct {
 		Ctx     context.Context
@@ -72,16 +121,16 @@ func (mock *DataLoaderServiceMock) AuthorsListByAgentID(ctx context.Context, age
 		Ctx:     ctx,
 		AgentID: agentID,
 	}
-	lockDataLoaderServiceMockAuthorsListByAgentID.Lock()
-	mock.calls.AuthorsListByAgentID = append(mock.calls.AuthorsListByAgentID, callInfo)
-	lockDataLoaderServiceMockAuthorsListByAgentID.Unlock()
-	return mock.AuthorsListByAgentIDFunc(ctx, agentID)
+	lockDataLoaderServiceMockAuthorListByAgentID.Lock()
+	mock.calls.AuthorListByAgentID = append(mock.calls.AuthorListByAgentID, callInfo)
+	lockDataLoaderServiceMockAuthorListByAgentID.Unlock()
+	return mock.AuthorListByAgentIDFunc(ctx, agentID)
 }
 
-// AuthorsListByAgentIDCalls gets all the calls that were made to AuthorsListByAgentID.
+// AuthorListByAgentIDCalls gets all the calls that were made to AuthorListByAgentID.
 // Check the length with:
-//     len(mockedDataLoaderService.AuthorsListByAgentIDCalls())
-func (mock *DataLoaderServiceMock) AuthorsListByAgentIDCalls() []struct {
+//     len(mockedDataLoaderService.AuthorListByAgentIDCalls())
+func (mock *DataLoaderServiceMock) AuthorListByAgentIDCalls() []struct {
 	Ctx     context.Context
 	AgentID int64
 } {
@@ -89,9 +138,9 @@ func (mock *DataLoaderServiceMock) AuthorsListByAgentIDCalls() []struct {
 		Ctx     context.Context
 		AgentID int64
 	}
-	lockDataLoaderServiceMockAuthorsListByAgentID.RLock()
-	calls = mock.calls.AuthorsListByAgentID
-	lockDataLoaderServiceMockAuthorsListByAgentID.RUnlock()
+	lockDataLoaderServiceMockAuthorListByAgentID.RLock()
+	calls = mock.calls.AuthorListByAgentID
+	lockDataLoaderServiceMockAuthorListByAgentID.RUnlock()
 	return calls
 }
 
