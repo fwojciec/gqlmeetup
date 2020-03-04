@@ -129,9 +129,6 @@ func TestAuthorListByBookIDs(t *testing.T) {
 				ctx := context.Background()
 				repo := &postgres.DataLoaderRepository{DB: sdb}
 				res, err := repo.AuthorListByBookIDs(ctx, tc.bookIDs)
-				for _, r := range res {
-					t.Log(*r)
-				}
 				ok(t, err)
 				equals(t, tc.exp, res)
 			})

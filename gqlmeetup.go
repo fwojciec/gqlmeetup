@@ -67,3 +67,38 @@ type DataLoaderService interface {
 	BookListByAuthorID(ctx context.Context, authorID int64) ([]*Book, error)
 	Initialize(ctx context.Context) context.Context
 }
+
+// PasswordService performs password checking and hashing.
+type PasswordService interface {
+	Check(pwdHash, pwd string) error
+	Hash(pwd string) (string, error)
+}
+
+// Tokens contains a pair of generated tokens and the Unix timestamp of access
+// token expiration.
+type Tokens struct {
+	Access    string
+	Refresh   string
+	ExpiresAt int
+}
+
+// AccessTokenPayload is the result of a successful access token validation.
+type AccessTokenPayload struct {
+	UserID  int64
+	IsAdmin bool
+}
+
+// RefreshTokenPayload is the result of a successful refresh token validation.
+type RefreshTokenPayload struct {
+	UserID int64
+}
+
+// TokenService performs token-related tasks.
+type TokenService interface {
+	IssueTokens(userID int64, isAdmin bool, pwdHash string) (*Tokens, error)
+	DecodeRefreshToken(token string) (int64, error)
+	CheckRefreshToken(token string, pwdHash string) (*RefreshTokenPayload, error)
+	CheckAccessToken(token string) (*AccessTokenPayload, error)
+	Retrieve(ctx context.Context) (*AccessTokenPayload, error)
+	Store(context.Context, *AccessTokenPayload) context.Context
+}
