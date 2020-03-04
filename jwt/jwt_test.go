@@ -19,11 +19,11 @@ var (
 	testTokenSecret = []byte("testTokenSecret")
 	testATDuration  = 1 * time.Second
 	testRTDuration  = 5 * time.Second
-	testUserID      = int64(99)
+	testUserEmail   = "user1@email.com"
 	testIsAdmin     = true
 	testHash        = "$2a$10$49VvJ9eRiOdJp72cjss5eeP2GdRgRCA5ojhmFEBJqq5qPdO8z27Ue"
 	testTokenWrong1 = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0EiXLdwJ6xC6AfgZWF1bOsS_TuYI3OG85AmiExREkrS6tDfTQ2B3WXlrr-wp5AokiRbz3_oB4OxG-W9KcEEbDRcZc0nH3L7LzYptiy1PtAylQGxHTWZXtGz4ht0bAecBgmpdgXMguEIcoqPJ1n3pIWk_dUZegpqx0Lka21H6XxUTxiy8OcaarA8zdnPUnV6AmNP3ecFawIFYdvJB_cm-GvpCSbr8G8y_Mllj8f4x9nBH8pQux89_6gUY618iYv7tuPWBFfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA"
-	testATPayload   = &gqlmeetup.AccessTokenPayload{UserID: testUserID, IsAdmin: testIsAdmin}
+	testATPayload   = &gqlmeetup.AccessTokenPayload{UserEmail: testUserEmail, IsAdmin: testIsAdmin}
 )
 
 func TestIssueCheckAndDecodeTokens(t *testing.T) {
@@ -42,7 +42,7 @@ func TestIssueCheckAndDecodeTokens(t *testing.T) {
 	}
 
 	t.Run("issue", func(t *testing.T) {
-		tokens, err := ic.IssueTokens(testUserID, testIsAdmin, testHash)
+		tokens, err := ic.Issue(testUserEmail, testIsAdmin, testHash)
 		ok(t, err)
 		testAccessToken = tokens.Access
 		testRefreshToken = tokens.Refresh
@@ -52,14 +52,14 @@ func TestIssueCheckAndDecodeTokens(t *testing.T) {
 	t.Run("check access token", func(t *testing.T) {
 		ap, err := ic.CheckAccessToken(testAccessToken)
 		ok(t, err)
-		equals(t, ap.UserID, testUserID)
+		equals(t, ap.UserEmail, testUserEmail)
 		equals(t, ap.IsAdmin, testIsAdmin)
 	})
 
 	t.Run("check refresh token", func(t *testing.T) {
 		rt, err := ic.CheckRefreshToken(testRefreshToken, testHash)
 		ok(t, err)
-		equals(t, rt.UserID, testUserID)
+		equals(t, rt.UserEmail, testUserEmail)
 	})
 
 	t.Run("check access token invalid", func(t *testing.T) {
@@ -83,13 +83,13 @@ func TestIssueCheckAndDecodeTokens(t *testing.T) {
 	t.Run("decode refresh token", func(t *testing.T) {
 		id, err := ic.DecodeRefreshToken(testRefreshToken)
 		ok(t, err)
-		equals(t, testUserID, id)
+		equals(t, testUserEmail, id)
 	})
 
 	t.Run("decode refresh token bad token", func(t *testing.T) {
-		id, err := ic.DecodeRefreshToken("bad token")
+		email, err := ic.DecodeRefreshToken("bad token")
 		equals(t, gqlmeetup.ErrUnauthorized, err)
-		assert(t, id == 0, "in case of a bad token returned ID should be 0")
+		assert(t, email == "", "in case of a bad token returned Email should be an embty string")
 	})
 }
 

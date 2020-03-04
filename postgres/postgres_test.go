@@ -84,6 +84,16 @@ var (
 		ID:    1,
 		Title: "Test Book 5",
 	}
+	testUser1 = gqlmeetup.User{
+		Email:    "user1@email.com",
+		Password: "password1",
+		Admin:    true,
+	}
+	testUser2 = gqlmeetup.User{
+		Email:    "user2@email.com",
+		Password: "password2",
+		Admin:    false,
+	}
 )
 
 const (
@@ -133,6 +143,16 @@ INSERT INTO book_authors (book_id, author_id) VALUES
 (3, 1),
 (3, 2);
 `
+	usersSetup = `
+CREATE TABLE IF NOT EXISTS users (
+	email varchar(254) PRIMARY KEY,
+	password varchar(60) NOT NULL,
+	admin boolean
+);
+INSERT INTO users (email, password, admin) VALUES
+('user1@email.com', 'password1', true),
+('user2@email.com', 'password2', false);
+`
 )
 
 var schema pgtester.Schema = pgtester.Schema{
@@ -149,6 +169,9 @@ var schema pgtester.Schema = pgtester.Schema{
 	"book_authors": pgtester.TableSchema{
 		SetupSQL: bookAuthorsSetup,
 		Deps:     []string{"books", "authors"},
+	},
+	"users": pgtester.TableSchema{
+		SetupSQL: usersSetup,
 	},
 }
 

@@ -10,21 +10,22 @@ import (
 )
 
 var (
-	lockRepositoryMockAgentCreate   sync.RWMutex
-	lockRepositoryMockAgentDelete   sync.RWMutex
-	lockRepositoryMockAgentGetByID  sync.RWMutex
-	lockRepositoryMockAgentList     sync.RWMutex
-	lockRepositoryMockAgentUpdate   sync.RWMutex
-	lockRepositoryMockAuthorCreate  sync.RWMutex
-	lockRepositoryMockAuthorDelete  sync.RWMutex
-	lockRepositoryMockAuthorGetByID sync.RWMutex
-	lockRepositoryMockAuthorList    sync.RWMutex
-	lockRepositoryMockAuthorUpdate  sync.RWMutex
-	lockRepositoryMockBookCreate    sync.RWMutex
-	lockRepositoryMockBookDelete    sync.RWMutex
-	lockRepositoryMockBookGetByID   sync.RWMutex
-	lockRepositoryMockBookList      sync.RWMutex
-	lockRepositoryMockBookUpdate    sync.RWMutex
+	lockRepositoryMockAgentCreate    sync.RWMutex
+	lockRepositoryMockAgentDelete    sync.RWMutex
+	lockRepositoryMockAgentGetByID   sync.RWMutex
+	lockRepositoryMockAgentList      sync.RWMutex
+	lockRepositoryMockAgentUpdate    sync.RWMutex
+	lockRepositoryMockAuthorCreate   sync.RWMutex
+	lockRepositoryMockAuthorDelete   sync.RWMutex
+	lockRepositoryMockAuthorGetByID  sync.RWMutex
+	lockRepositoryMockAuthorList     sync.RWMutex
+	lockRepositoryMockAuthorUpdate   sync.RWMutex
+	lockRepositoryMockBookCreate     sync.RWMutex
+	lockRepositoryMockBookDelete     sync.RWMutex
+	lockRepositoryMockBookGetByID    sync.RWMutex
+	lockRepositoryMockBookList       sync.RWMutex
+	lockRepositoryMockBookUpdate     sync.RWMutex
+	lockRepositoryMockUserGetByEmail sync.RWMutex
 )
 
 // Ensure, that RepositoryMock does implement gqlmeetup.Repository.
@@ -82,6 +83,9 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             BookUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookUpdate method")
 //             },
+//             UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
+// 	               panic("mock out the UserGetByEmail method")
+//             },
 //         }
 //
 //         // use mockedRepository in code that requires gqlmeetup.Repository
@@ -133,6 +137,9 @@ type RepositoryMock struct {
 
 	// BookUpdateFunc mocks the BookUpdate method.
 	BookUpdateFunc func(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error)
+
+	// UserGetByEmailFunc mocks the UserGetByEmail method.
+	UserGetByEmailFunc func(ctx context.Context, email string) (*gqlmeetup.User, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -244,6 +251,13 @@ type RepositoryMock struct {
 			Data gqlmeetup.Book
 			// AuthorIDs is the authorIDs argument value.
 			AuthorIDs []int64
+		}
+		// UserGetByEmail holds details about calls to the UserGetByEmail method.
+		UserGetByEmail []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Email is the email argument value.
+			Email string
 		}
 	}
 }
@@ -778,5 +792,40 @@ func (mock *RepositoryMock) BookUpdateCalls() []struct {
 	lockRepositoryMockBookUpdate.RLock()
 	calls = mock.calls.BookUpdate
 	lockRepositoryMockBookUpdate.RUnlock()
+	return calls
+}
+
+// UserGetByEmail calls UserGetByEmailFunc.
+func (mock *RepositoryMock) UserGetByEmail(ctx context.Context, email string) (*gqlmeetup.User, error) {
+	if mock.UserGetByEmailFunc == nil {
+		panic("RepositoryMock.UserGetByEmailFunc: method is nil but Repository.UserGetByEmail was just called")
+	}
+	callInfo := struct {
+		Ctx   context.Context
+		Email string
+	}{
+		Ctx:   ctx,
+		Email: email,
+	}
+	lockRepositoryMockUserGetByEmail.Lock()
+	mock.calls.UserGetByEmail = append(mock.calls.UserGetByEmail, callInfo)
+	lockRepositoryMockUserGetByEmail.Unlock()
+	return mock.UserGetByEmailFunc(ctx, email)
+}
+
+// UserGetByEmailCalls gets all the calls that were made to UserGetByEmail.
+// Check the length with:
+//     len(mockedRepository.UserGetByEmailCalls())
+func (mock *RepositoryMock) UserGetByEmailCalls() []struct {
+	Ctx   context.Context
+	Email string
+} {
+	var calls []struct {
+		Ctx   context.Context
+		Email string
+	}
+	lockRepositoryMockUserGetByEmail.RLock()
+	calls = mock.calls.UserGetByEmail
+	lockRepositoryMockUserGetByEmail.RUnlock()
 	return calls
 }

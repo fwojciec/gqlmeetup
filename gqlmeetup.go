@@ -2,7 +2,15 @@ package gqlmeetup
 
 import "context"
 
-// Agent is an employee of the agency.
+// User is a user of the website.
+type User struct {
+	ID       int64
+	Email    string
+	Password string
+	Admin    bool
+}
+
+// Agent is an agent working in the agency.
 type Agent struct {
 	ID    int64
 	Name  string
@@ -48,6 +56,7 @@ type Repository interface {
 	BookGetByID(ctx context.Context, id int64) (*Book, error)
 	BookList(ctx context.Context) ([]*Book, error)
 	BookUpdate(ctx context.Context, id int64, data Book, authorIDs []int64) (*Book, error)
+	UserGetByEmail(ctx context.Context, email string) (*User, error)
 }
 
 // DataLoaderRepository represents database functionality used by the dataloader
@@ -84,19 +93,19 @@ type Tokens struct {
 
 // AccessTokenPayload is the result of a successful access token validation.
 type AccessTokenPayload struct {
-	UserID  int64
-	IsAdmin bool
+	UserEmail string
+	IsAdmin   bool
 }
 
 // RefreshTokenPayload is the result of a successful refresh token validation.
 type RefreshTokenPayload struct {
-	UserID int64
+	UserEmail string
 }
 
 // TokenService performs token-related tasks.
 type TokenService interface {
-	IssueTokens(userID int64, isAdmin bool, pwdHash string) (*Tokens, error)
-	DecodeRefreshToken(token string) (int64, error)
+	Issue(userEmail string, isAdmin bool, pwdHash string) (*Tokens, error)
+	DecodeRefreshToken(token string) (string, error)
 	CheckRefreshToken(token string, pwdHash string) (*RefreshTokenPayload, error)
 	CheckAccessToken(token string) (*AccessTokenPayload, error)
 	Retrieve(ctx context.Context) (*AccessTokenPayload, error)

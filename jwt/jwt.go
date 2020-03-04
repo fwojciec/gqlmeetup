@@ -17,13 +17,13 @@ const (
 type ctxKey string
 
 type accessTokenClaims struct {
-	UserID  int64 `json:"userId"`
-	IsAdmin bool  `json:"admin"`
+	UserEmail string `json:"userEmail"`
+	IsAdmin   bool   `json:"admin"`
 	jwt.StandardClaims
 }
 
 type refreshTokenClaims struct {
-	UserID int64 `json:"userId"`
+	UserEmail string `json:"userEmail"`
 	jwt.StandardClaims
 }
 
@@ -37,13 +37,13 @@ type TokenService struct {
 	Now                  func() time.Time // optional
 }
 
-// IssueTokens issues a pair of tokens.
-func (t *TokenService) IssueTokens(userID int64, isAdmin bool, pwdHash string) (*gqlmeetup.Tokens, error) {
-	at, expAt, err := t.issueAccessToken(userID, isAdmin)
+// Issue issues a pair of tokens.
+func (t *TokenService) Issue(userEmail string, isAdmin bool, pwdHash string) (*gqlmeetup.Tokens, error) {
+	at, expAt, err := t.issueAccessToken(userEmail, isAdmin)
 	if err != nil {
 		return nil, err
 	}
-	rt, err := t.issueRefreshToken(userID, []byte(pwdHash))
+	rt, err := t.issueRefreshToken(userEmail, []byte(pwdHash))
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +54,11 @@ func (t *TokenService) IssueTokens(userID int64, isAdmin bool, pwdHash string) (
 	}, nil
 }
 
-func (t *TokenService) issueAccessToken(userID int64, isAdmin bool) (string, int, error) {
+func (t *TokenService) issueAccessToken(userEmail string, isAdmin bool) (string, int, error) {
 	expAt := t.now().Add(t.atDuration()).Unix()
 	atClaims := &accessTokenClaims{
-		UserID:  userID,
-		IsAdmin: isAdmin,
+		UserEmail: userEmail,
+		IsAdmin:   isAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expAt,
 		},
@@ -71,9 +71,9 @@ func (t *TokenService) issueAccessToken(userID int64, isAdmin bool) (string, int
 	return token, int(expAt), nil
 }
 
-func (t *TokenService) issueRefreshToken(userID int64, pwdHash []byte) (string, error) {
+func (t *TokenService) issueRefreshToken(userEmail string, pwdHash []byte) (string, error) {
 	rtClaims := &refreshTokenClaims{
-		UserID: userID,
+		UserEmail: userEmail,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: t.now().Add(t.rtDuration()).Unix(),
 		},
@@ -90,14 +90,14 @@ func (t *TokenService) issueRefreshToken(userID int64, pwdHash []byte) (string, 
 
 // DecodeRefreshToken retrieves the user ID encoded in the Refresh Token without
 // checking the validity of the token.
-func (t *TokenService) DecodeRefreshToken(token string) (int64, error) {
+func (t *TokenService) DecodeRefreshToken(token string) (string, error) {
 	claims := &refreshTokenClaims{}
 	p := jwt.Parser{}
 	_, _, err := p.ParseUnverified(token, claims)
-	if err != nil || claims.UserID == 0 {
-		return 0, gqlmeetup.ErrUnauthorized
+	if err != nil || claims.UserEmail == "" {
+		return "", gqlmeetup.ErrUnauthorized
 	}
-	return claims.UserID, nil
+	return claims.UserEmail, nil
 }
 
 // CheckRefreshToken validates the refresh token and returns its payload.
@@ -112,7 +112,7 @@ func (t *TokenService) CheckRefreshToken(token, pwdHash string) (*gqlmeetup.Refr
 	if err != nil || !parsedToken.Valid {
 		return nil, gqlmeetup.ErrUnauthorized
 	}
-	return &gqlmeetup.RefreshTokenPayload{UserID: claims.UserID}, nil
+	return &gqlmeetup.RefreshTokenPayload{UserEmail: claims.UserEmail}, nil
 }
 
 // CheckAccessToken validates the access token and returns its payload.
@@ -127,7 +127,7 @@ func (t *TokenService) CheckAccessToken(token string) (*gqlmeetup.AccessTokenPay
 	if err != nil || !parsedToken.Valid {
 		return nil, gqlmeetup.ErrUnauthorized
 	}
-	return &gqlmeetup.AccessTokenPayload{UserID: claims.UserID, IsAdmin: claims.IsAdmin}, nil
+	return &gqlmeetup.AccessTokenPayload{UserEmail: claims.UserEmail, IsAdmin: claims.IsAdmin}, nil
 }
 
 // Retrieve retrieves the access token payload from the request context.

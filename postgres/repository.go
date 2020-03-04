@@ -239,3 +239,18 @@ func unsetBookAuthors(ctx context.Context, tx *sqlx.Tx, bookID int64) error {
 	_, err := tx.ExecContext(ctx, unsetBookAuthorsQuery, bookID)
 	return err
 }
+
+const userGetByEmailQuery = `
+SELECT * FROM users WHERE email = $1`
+
+// UserGetByEmail gets a user by email address.
+func (r *Repository) UserGetByEmail(ctx context.Context, email string) (*gqlmeetup.User, error) {
+	res := &gqlmeetup.User{}
+	if err := r.DB.GetContext(ctx, res, userGetByEmailQuery, email); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, gqlmeetup.ErrNotFound
+		}
+		return nil, err
+	}
+	return res, nil
+}

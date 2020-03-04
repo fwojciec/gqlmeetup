@@ -25,3 +25,9 @@ CREATE TABLE IF NOT EXISTS book_authors (
     UNIQUE (book_id, author_id)
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    email varchar(254) PRIMARY KEY,
+    password varchar(60) NOT NULL,
+    admin boolean
+);
+

@@ -11,6 +11,8 @@ import (
 type Resolver struct {
 	Repository  gqlmeetup.Repository
 	DataLoaders gqlmeetup.DataLoaderService
+	Password    gqlmeetup.PasswordService
+	Tokens      gqlmeetup.TokenService
 }
 
 func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, error) {
@@ -39,6 +41,47 @@ func (r *bookResolver) ID(ctx context.Context, obj *gqlmeetup.Book) (string, err
 
 func (r *bookResolver) Authors(ctx context.Context, obj *gqlmeetup.Book) ([]*gqlmeetup.Author, error) {
 	return r.DataLoaders.AuthorListByBookID(ctx, obj.ID)
+}
+
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*gqlmeetup.Tokens, error) {
+	user, err := r.Repository.UserGetByEmail(ctx, email)
+	if err != nil {
+		if err == gqlmeetup.ErrNotFound {
+			return nil, gqlmeetup.ErrUnauthorized
+		}
+		return nil, err
+	}
+	if err := r.Password.Check(user.Password, password); err != nil {
+		return nil, gqlmeetup.ErrUnauthorized
+	}
+	tokens, err := r.Tokens.Issue(user.Email, user.Admin, user.Password)
+	if err != nil {
+		return nil, err
+	}
+	return tokens, nil
+}
+
+func (r *mutationResolver) Refresh(ctx context.Context, token string) (*gqlmeetup.Tokens, error) {
+	email, err := r.Tokens.DecodeRefreshToken(token)
+	if err != nil {
+		return nil, gqlmeetup.ErrUnauthorized
+	}
+	user, err := r.Repository.UserGetByEmail(ctx, email)
+	if err != nil {
+		if err == gqlmeetup.ErrNotFound {
+			return nil, gqlmeetup.ErrUnauthorized
+		}
+		return nil, err
+	}
+	_, err = r.Tokens.CheckRefreshToken(token, user.Password)
+	if err != nil {
+		return nil, gqlmeetup.ErrUnauthorized
+	}
+	tokens, err := r.Tokens.Issue(user.Email, user.Admin, user.Password)
+	if err != nil {
+		return nil, err
+	}
+	return tokens, nil
 }
 
 func (r *mutationResolver) AgentCreate(ctx context.Context, data AgentInput) (*gqlmeetup.Agent, error) {
@@ -225,6 +268,10 @@ func (r *queryResolver) Books(ctx context.Context) ([]*gqlmeetup.Book, error) {
 	return books, nil
 }
 
+func (r *userResolver) ID(ctx context.Context, obj *gqlmeetup.User) (string, error) {
+	return int64ToString(obj.ID), nil
+}
+
 // Agent returns an implmentation of the AgentResolver interface.
 func (r *Resolver) Agent() AgentResolver { return &agentResolver{r} }
 
@@ -240,11 +287,15 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns an implmentation of the QueryResolver interface.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// User returns an implmentation of the UserResolver interface.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 type agentResolver struct{ *Resolver }
 type authorResolver struct{ *Resolver }
 type bookResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
 
 func int64ToString(i int64) string {
 	return strconv.FormatInt(i, 10)

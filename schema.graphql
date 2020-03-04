@@ -5,6 +5,13 @@ enum Role {
   USER
 }
 
+type User {
+  id: ID!
+  email: String!
+  password: String!
+  admin: Boolean!
+}
+
 type Agent {
   id: ID!
   name: String!
@@ -35,6 +42,8 @@ type Query {
 }
 
 type Mutation {
+  login(email: String!, password: String!): Tokens!
+  refresh(token: String!): Tokens!
   agentCreate(data: AgentInput!): Agent! @hasRole(role: ADMIN)
   agentDelete(id: ID!): Agent! @hasRole(role: USER)
   agentUpdate(id: ID!, data: AgentInput!): Agent! @hasRole(role: USER)
@@ -59,4 +68,10 @@ input AuthorInput {
 input BookInput {
   title: String!
   authorIDs: [ID!]!
+}
+
+type Tokens {
+  access: String!
+  refresh: String!
+  expiresAt: Int!
 }
