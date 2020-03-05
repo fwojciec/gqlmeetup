@@ -4,7 +4,6 @@ import "context"
 
 // User is a user of the website.
 type User struct {
-	ID       int64
 	Email    string
 	Password string
 	Admin    bool
@@ -66,6 +65,12 @@ type DataLoaderRepository interface {
 	AgentListByIDs(ctx context.Context, ids []int64) ([]*Agent, error)
 	BookListByAuthorIDs(ctx context.Context, authorIDs []int64) ([]*Book, error)
 	AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*Author, error)
+}
+
+// CLIRepository represents database functionality used by the command line
+// interface.
+type CLIRepository interface {
+	UserCreate(data User) error
 }
 
 // DataLoaderService provides dataloader functionality for the resolvers.

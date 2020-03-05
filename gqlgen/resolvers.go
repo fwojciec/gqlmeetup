@@ -268,10 +268,6 @@ func (r *queryResolver) Books(ctx context.Context) ([]*gqlmeetup.Book, error) {
 	return books, nil
 }
 
-func (r *userResolver) ID(ctx context.Context, obj *gqlmeetup.User) (string, error) {
-	return int64ToString(obj.ID), nil
-}
-
 // Agent returns an implmentation of the AgentResolver interface.
 func (r *Resolver) Agent() AgentResolver { return &agentResolver{r} }
 
@@ -286,9 +282,6 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
 // Query returns an implmentation of the QueryResolver interface.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
-// User returns an implmentation of the UserResolver interface.
-func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
 type agentResolver struct{ *Resolver }
 type authorResolver struct{ *Resolver }

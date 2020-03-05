@@ -581,18 +581,6 @@ func TestQueryResolver(t *testing.T) {
 	})
 }
 
-func TestUserResolver(t *testing.T) {
-	t.Parallel()
-
-	t.Run("ID", func(t *testing.T) {
-		t.Parallel()
-		r := &gqlgen.Resolver{}
-		res, err := r.User().ID(context.Background(), &gqlmeetup.User{ID: 1337})
-		ok(t, err) // should always be nil
-		equals(t, "1337", res)
-	})
-}
-
 // ok fails the test if an err is not nil.
 func ok(tb testing.TB, err error) {
 	if err != nil {
