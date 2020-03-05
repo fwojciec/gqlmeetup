@@ -12,7 +12,7 @@ import (
 // Server is the HTTP server serving the GraphQL endpoints.
 type Server struct {
 	QueryHandler      http.Handler
-	PlaygroundHandler func(string) http.HandlerFunc
+	PlaygroundHandler func(string) http.Handler
 	TokenService      gqlmeetup.TokenService
 	DataLoaderService gqlmeetup.DataLoaderService
 }

@@ -20,9 +20,7 @@ import (
 func TestDataLoaderMiddleware(t *testing.T) {
 	t.Parallel()
 	dlRepo := &mocks.DataLoaderRepositoryMock{
-		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
-			return nil, nil
-		},
+		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) { return nil, nil },
 	}
 	dls := &dataloaden.DataLoaderService{Repository: dlRepo}
 	dm := myhttp.DataloaderMiddleware(dls)
@@ -36,7 +34,6 @@ func TestDataLoaderMiddleware(t *testing.T) {
 
 func TestTokenMiddleware(t *testing.T) {
 	t.Parallel()
-
 	var (
 		testTime        = time.Now()
 		testNow         = func() time.Time { return testTime }
@@ -45,17 +42,14 @@ func TestTokenMiddleware(t *testing.T) {
 		testIsAdmin     = true
 		testHash        = "$2a$10$49VvJ9eRiOdJp72cjss5eeP2GdRgRCA5ojhmFEBJqq5qPdO8z27Ue"
 	)
-
 	ic := &jwt.TokenService{
 		Secret:               testTokenSecret,
 		AccessTokenDuration:  1 * time.Second,
 		RefreshTokenDuration: 5 * time.Second,
 		Now:                  testNow,
 	}
-
 	tokens, err := ic.Issue(testUserEmail, testIsAdmin, testHash)
 	ok(t, err)
-
 	tests := []struct {
 		name        string
 		setHeader   bool
@@ -86,7 +80,6 @@ func TestTokenMiddleware(t *testing.T) {
 			err:         gqlmeetup.ErrUnauthorized,
 		},
 	}
-
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -107,7 +100,6 @@ func TestTokenMiddleware(t *testing.T) {
 			}))
 			handler.ServeHTTP(nil, req)
 		})
-
 	}
 }
 

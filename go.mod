@@ -9,10 +9,11 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/matryer/moq v0.0.0-20200125112110-7615cbe60268
+	github.com/oklog/run v1.1.0
 	github.com/rs/cors v1.7.0
 	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
-	golang.org/x/tools v0.0.0-20200305140159-d7d444866696 // indirect
+	golang.org/x/tools v0.0.0-20200305185322-6a641547f55b // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )

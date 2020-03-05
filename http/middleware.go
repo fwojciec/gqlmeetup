@@ -19,7 +19,8 @@ func DataloaderMiddleware(dls gqlmeetup.DataLoaderService) func(http.Handler) ht
 	}
 }
 
-// TokenMiddleware adds user's UserID and IsAdmin to context if JWT token authorization was successful.
+// TokenMiddleware stores the user email and admin as a request-scoped context
+// value if the authorization was successful.
 func TokenMiddleware(ts gqlmeetup.TokenService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
