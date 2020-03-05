@@ -89,11 +89,6 @@ var (
 		Password: "password1",
 		Admin:    true,
 	}
-	testUser2 = gqlmeetup.User{
-		Email:    "user2@email.com",
-		Password: "password2",
-		Admin:    false,
-	}
 )
 
 const (
