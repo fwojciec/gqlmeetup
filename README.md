@@ -38,7 +38,7 @@ This subpackage implements a simple HTTP server along with some middlewares that
 
 ### jwt
 
-This subpackage wraps the [jwt-go](github.com/dgrijalva/jwt-go) package and provides the functionality related to issuing, decoding and checking the tokens as well as functions.
+This subpackage wraps the [jwt-go](github.com/dgrijalva/jwt-go) package and provides the functionality related to issuing, decoding and checking the tokens as well as functions. It provides an implementation of the `TokenService` interface.
 
 ### mockes
 
