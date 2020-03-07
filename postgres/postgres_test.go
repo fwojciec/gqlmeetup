@@ -130,12 +130,11 @@ INSERT INTO books (title) VALUES
 `
 	bookAuthorsSetup = `
 CREATE TABLE IF NOT EXISTS book_authors (
-	id bigserial PRIMARY KEY,
-	book_id bigint NOT NULL,
-	author_id bigint NOT NULL,
+	book_id bigint,
+	author_id bigint,
 	FOREIGN KEY (book_id) REFERENCES books (id) ON DELETE CASCADE,
 	FOREIGN KEY (author_id) REFERENCES authors (id) ON DELETE CASCADE,
-	UNIQUE (book_id, author_id)
+	PRIMARY KEY (book_id, author_id)
 );
 INSERT INTO book_authors (book_id, author_id) VALUES
 (1, 1),
