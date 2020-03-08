@@ -15,6 +15,6 @@ require (
 	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
-	golang.org/x/tools v0.0.0-20200305185322-6a641547f55b // indirect
+	golang.org/x/tools v0.0.0-20200308013534-11ec41452d41 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 )
