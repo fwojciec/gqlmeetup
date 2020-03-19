@@ -11,8 +11,8 @@ import (
 	"github.com/fwojciec/gqlmeetup/dataloaden"
 	"github.com/fwojciec/gqlmeetup/gqlgen"
 	"github.com/fwojciec/gqlmeetup/http"
-	"github.com/fwojciec/gqlmeetup/jwt"
 	"github.com/fwojciec/gqlmeetup/postgres"
+	"github.com/fwojciec/gqlmeetup/scs"
 	"github.com/oklog/run"
 )
 
@@ -42,15 +42,15 @@ func main() {
 	// init dataloader service
 	dls := &dataloaden.DataLoaderService{Repository: dlr}
 
-	// init token service with default values
-	ts := &jwt.TokenService{Secret: []byte(tokenSecret)}
+	// init sessions service with default values
+	ss := scs.New()
 
 	// init the root resolver
 	resolver := &gqlgen.Resolver{
 		Repository:  r,
 		DataLoaders: dls,
 		Password:    ps,
-		Tokens:      ts,
+		Session:     ss,
 	}
 
 	// run things!
@@ -60,8 +60,8 @@ func main() {
 		server := &http.Server{
 			QueryHandler:      gqlgen.NewQueryHandler(resolver),
 			PlaygroundHandler: gqlgen.NewPlaygroundHandler(),
-			TokenService:      ts,
 			DataLoaderService: dls,
+			SessionService:    ss,
 		}
 		g.Add(func() error {
 			return server.Run(ln)

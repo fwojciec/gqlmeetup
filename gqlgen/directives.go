@@ -8,13 +8,13 @@ import (
 )
 
 // HasRole verifies the user authorization for a particular resource.
-func HasRole(auth gqlmeetup.TokenService) func(context.Context, interface{}, graphql.Resolver, Role) (interface{}, error) {
+func HasRole(session gqlmeetup.SessionService) func(context.Context, interface{}, graphql.Resolver, Role) (interface{}, error) {
 	return func(ctx context.Context, obj interface{}, next graphql.Resolver, role Role) (interface{}, error) {
-		au, err := auth.Retrieve(ctx)
-		if err != nil {
+		user := session.GetUser(ctx)
+		if user == nil {
 			return nil, gqlmeetup.ErrUnauthorized
 		}
-		if role == RoleAdmin && !au.IsAdmin {
+		if role == RoleAdmin && !user.Admin {
 			return nil, gqlmeetup.ErrUnauthorized
 		}
 		return next(ctx)

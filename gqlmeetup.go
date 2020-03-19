@@ -1,12 +1,15 @@
 package gqlmeetup
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // User is a user of the website.
 type User struct {
-	Email    string
-	Password string
-	Admin    bool
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
+	Admin    bool   `json:"admin,omitempty"`
 }
 
 // Agent is an agent working in the agency.
@@ -88,31 +91,10 @@ type PasswordService interface {
 	Hash(pwd string) (string, error)
 }
 
-// Tokens contains a pair of generated tokens and the Unix timestamp of access
-// token expiration.
-type Tokens struct {
-	Access    string
-	Refresh   string
-	ExpiresAt int
-}
-
-// AccessTokenPayload is the result of a successful access token validation.
-type AccessTokenPayload struct {
-	UserEmail string
-	IsAdmin   bool
-}
-
-// RefreshTokenPayload is the result of a successful refresh token validation.
-type RefreshTokenPayload struct {
-	UserEmail string
-}
-
-// TokenService performs token-related tasks.
-type TokenService interface {
-	Issue(userEmail string, isAdmin bool, pwdHash string) (*Tokens, error)
-	DecodeRefreshToken(token string) (string, error)
-	CheckRefreshToken(token string, pwdHash string) (*RefreshTokenPayload, error)
-	CheckAccessToken(token string) (*AccessTokenPayload, error)
-	Retrieve(ctx context.Context) (*AccessTokenPayload, error)
-	Store(context.Context, *AccessTokenPayload) context.Context
+// SessionService manages the session.
+type SessionService interface {
+	Login(ctx context.Context, user *User) error
+	Logout(ctx context.Context) error
+	GetUser(ctx context.Context) *User
+	Middleware() func(http.Handler) http.Handler
 }

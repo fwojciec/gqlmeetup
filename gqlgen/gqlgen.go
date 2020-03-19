@@ -12,7 +12,7 @@ func NewQueryHandler(resolver *Resolver) http.Handler {
 	return handler.NewDefaultServer(NewExecutableSchema(Config{
 		Resolvers: resolver,
 		Directives: DirectiveRoot{
-			HasRole: HasRole(resolver.Tokens),
+			HasRole: HasRole(resolver.Session),
 		},
 	}))
 }

@@ -12,7 +12,7 @@ type Resolver struct {
 	Repository  gqlmeetup.Repository
 	DataLoaders gqlmeetup.DataLoaderService
 	Password    gqlmeetup.PasswordService
-	Tokens      gqlmeetup.TokenService
+	Session     gqlmeetup.SessionService
 }
 
 func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, error) {
@@ -43,7 +43,7 @@ func (r *bookResolver) Authors(ctx context.Context, obj *gqlmeetup.Book) ([]*gql
 	return r.DataLoaders.AuthorListByBookID(ctx, obj.ID)
 }
 
-func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*gqlmeetup.Tokens, error) {
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*gqlmeetup.User, error) {
 	user, err := r.Repository.UserGetByEmail(ctx, email)
 	if err != nil {
 		if err == gqlmeetup.ErrNotFound {
@@ -54,34 +54,17 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 	if err := r.Password.Check(user.Password, password); err != nil {
 		return nil, gqlmeetup.ErrUnauthorized
 	}
-	tokens, err := r.Tokens.Issue(user.Email, user.Admin, user.Password)
-	if err != nil {
+	if err := r.Session.Login(ctx, user); err != nil {
 		return nil, err
 	}
-	return tokens, nil
+	return user, nil
 }
 
-func (r *mutationResolver) Refresh(ctx context.Context, token string) (*gqlmeetup.Tokens, error) {
-	email, err := r.Tokens.DecodeRefreshToken(token)
-	if err != nil {
-		return nil, gqlmeetup.ErrUnauthorized
+func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
+	if err := r.Session.Logout(ctx); err != nil {
+		return false, err
 	}
-	user, err := r.Repository.UserGetByEmail(ctx, email)
-	if err != nil {
-		if err == gqlmeetup.ErrNotFound {
-			return nil, gqlmeetup.ErrUnauthorized
-		}
-		return nil, err
-	}
-	_, err = r.Tokens.CheckRefreshToken(token, user.Password)
-	if err != nil {
-		return nil, gqlmeetup.ErrUnauthorized
-	}
-	tokens, err := r.Tokens.Issue(user.Email, user.Admin, user.Password)
-	if err != nil {
-		return nil, err
-	}
-	return tokens, nil
+	return true, nil
 }
 
 func (r *mutationResolver) AgentCreate(ctx context.Context, data AgentInput) (*gqlmeetup.Agent, error) {

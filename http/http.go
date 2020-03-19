@@ -13,16 +13,16 @@ import (
 type Server struct {
 	QueryHandler      http.Handler
 	PlaygroundHandler func(string) http.Handler
-	TokenService      gqlmeetup.TokenService
 	DataLoaderService gqlmeetup.DataLoaderService
+	SessionService    gqlmeetup.SessionService
 }
 
 // Run runs the server.
 func (s *Server) Run(ln net.Listener) error {
 	mux := http.NewServeMux()
-	tm := TokenMiddleware(s.TokenService)
 	dm := DataloaderMiddleware(s.DataLoaderService)
-	mux.Handle("/query", dm(tm(s.QueryHandler)))
+	sm := s.SessionService.Middleware()
+	mux.Handle("/query", sm(dm(s.QueryHandler)))
 	mux.Handle("/", s.PlaygroundHandler("/query"))
 	handler := cors.Default().Handler(mux)
 	server := &http.Server{

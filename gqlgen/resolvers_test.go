@@ -47,6 +47,16 @@ func TestAuthorResolver(t *testing.T) {
 		equals(t, "1337", res)
 	})
 
+	t.Run("Agent", func(t *testing.T) {
+		t.Parallel()
+		dlMock := &mocks.DataLoaderServiceMock{
+			AgentGetByIDFunc: func(ctx context.Context, id int64) (*gqlmeetup.Agent, error) { return nil, nil },
+		}
+		r := &gqlgen.Resolver{DataLoaders: dlMock}
+		_, _ = r.Author().Agent(context.Background(), &gqlmeetup.Author{ID: 876, AgentID: 123})
+		equals(t, dlMock.AgentGetByIDCalls()[0].ID, int64(123))
+	})
+
 	t.Run("Books", func(t *testing.T) {
 		t.Parallel()
 		dlMock := &mocks.DataLoaderServiceMock{
@@ -85,13 +95,14 @@ func TestMutationResolver(t *testing.T) {
 
 	t.Run("Login, successful", func(t *testing.T) {
 		t.Parallel()
+		testUser := &gqlmeetup.User{
+			Email:    "test@email.com",
+			Password: "hash",
+			Admin:    true,
+		}
 		repoMock := &mocks.RepositoryMock{
 			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
-				return &gqlmeetup.User{
-					Email:    "test@email.com",
-					Password: "hash",
-					Admin:    true,
-				}, nil
+				return testUser, nil
 			},
 		}
 		pwdMock := &mocks.PasswordServiceMock{
@@ -99,15 +110,15 @@ func TestMutationResolver(t *testing.T) {
 				return nil
 			},
 		}
-		jwtMock := &mocks.TokenServiceMock{
-			IssueFunc: func(userEmail string, isAdmin bool, pwdHash string) (*gqlmeetup.Tokens, error) {
-				return nil, nil
+		sessionMock := &mocks.SessionServiceMock{
+			LoginFunc: func(ctx context.Context, user *gqlmeetup.User) error {
+				return nil
 			},
 		}
 		r := &gqlgen.Resolver{
 			Repository: repoMock,
 			Password:   pwdMock,
-			Tokens:     jwtMock,
+			Session:    sessionMock,
 		}
 		_, _ = r.Mutation().Login(context.Background(), "test@email.com", "password")
 
@@ -118,13 +129,25 @@ func TestMutationResolver(t *testing.T) {
 		equals(t, "password", pwdCall.Pwd)
 		equals(t, "hash", pwdCall.PwdHash)
 
-		jwtCall := jwtMock.IssueCalls()[0]
-		equals(t, "hash", jwtCall.PwdHash)
-		equals(t, "test@email.com", jwtCall.UserEmail)
-		equals(t, true, jwtCall.IsAdmin)
+		sessionCall := sessionMock.LoginCalls()[0]
+		equals(t, testUser, sessionCall.User)
 	})
 
 	t.Run("Login, user not found", func(t *testing.T) {
+		t.Parallel()
+		repoMock := &mocks.RepositoryMock{
+			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
+				return nil, gqlmeetup.ErrNotFound
+			},
+		}
+		r := &gqlgen.Resolver{
+			Repository: repoMock,
+		}
+		_, err := r.Mutation().Login(context.Background(), "", "")
+		equals(t, gqlmeetup.ErrUnauthorized, err)
+	})
+
+	t.Run("Login, wrong password", func(t *testing.T) {
 		t.Parallel()
 		repoMock := &mocks.RepositoryMock{
 			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
@@ -148,129 +171,45 @@ func TestMutationResolver(t *testing.T) {
 		equals(t, gqlmeetup.ErrUnauthorized, err)
 	})
 
-	t.Run("Login, wrong password", func(t *testing.T) {
+	t.Run("Logout", func(t *testing.T) {
 		t.Parallel()
-		repoMock := &mocks.RepositoryMock{
-			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
-				return nil, gqlmeetup.ErrNotFound
+		testError := errors.New("test error")
+		tests := []struct {
+			name        string
+			logoutError error
+			expError    error
+			exp         bool
+		}{
+			{
+				name:        "successful",
+				logoutError: nil,
+				expError:    nil,
+				exp:         true,
+			},
+			{
+				name:        "failed",
+				logoutError: testError,
+				expError:    testError,
+				exp:         false,
 			},
 		}
-		r := &gqlgen.Resolver{
-			Repository: repoMock,
+		for _, tc := range tests {
+			tc := tc
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				sessionMock := &mocks.SessionServiceMock{
+					LogoutFunc: func(ctx context.Context) error {
+						return tc.logoutError
+					},
+				}
+				r := &gqlgen.Resolver{
+					Session: sessionMock,
+				}
+				res, err := r.Mutation().Logout(context.Background())
+				equals(t, tc.exp, res)
+				equals(t, tc.expError, err)
+			})
 		}
-		_, err := r.Mutation().Login(context.Background(), "", "")
-		equals(t, gqlmeetup.ErrUnauthorized, err)
-	})
-
-	t.Run("Refresh, successful", func(t *testing.T) {
-		t.Parallel()
-		repoMock := &mocks.RepositoryMock{
-			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
-				return &gqlmeetup.User{
-					Email:    "test@email.com",
-					Password: "hash",
-					Admin:    true,
-				}, nil
-			},
-		}
-		pwdMock := &mocks.PasswordServiceMock{
-			CheckFunc: func(pwdHash, pwd string) error {
-				return nil
-			},
-		}
-		jwtMock := &mocks.TokenServiceMock{
-			DecodeRefreshTokenFunc: func(token string) (string, error) {
-				return "test@email.com", nil
-			},
-			CheckRefreshTokenFunc: func(token string, pwdHash string) (*gqlmeetup.RefreshTokenPayload, error) {
-				return nil, nil
-			},
-			IssueFunc: func(userEmail string, isAdmin bool, pwdHash string) (*gqlmeetup.Tokens, error) {
-				return nil, nil
-			},
-		}
-		r := &gqlgen.Resolver{
-			Repository: repoMock,
-			Password:   pwdMock,
-			Tokens:     jwtMock,
-		}
-		_, _ = r.Mutation().Refresh(context.Background(), "refreshToken")
-
-		decodeCall := jwtMock.DecodeRefreshTokenCalls()[0]
-		equals(t, "refreshToken", decodeCall.Token)
-
-		repoCall := repoMock.UserGetByEmailCalls()[0]
-		equals(t, "test@email.com", repoCall.Email)
-
-		checkCall := jwtMock.CheckRefreshTokenCalls()[0]
-		equals(t, "refreshToken", checkCall.Token)
-		equals(t, "hash", checkCall.PwdHash)
-
-		issueCall := jwtMock.IssueCalls()[0]
-		equals(t, "hash", issueCall.PwdHash)
-		equals(t, "test@email.com", issueCall.UserEmail)
-		equals(t, true, issueCall.IsAdmin)
-	})
-
-	t.Run("Refresh, decode error", func(t *testing.T) {
-		t.Parallel()
-		jwtMock := &mocks.TokenServiceMock{
-			DecodeRefreshTokenFunc: func(token string) (string, error) {
-				return "", errors.New("test error")
-			},
-		}
-		r := &gqlgen.Resolver{
-			Tokens: jwtMock,
-		}
-		_, err := r.Mutation().Refresh(context.Background(), "refreshToken")
-		equals(t, gqlmeetup.ErrUnauthorized, err)
-	})
-
-	t.Run("Refresh, user query error", func(t *testing.T) {
-		t.Parallel()
-		jwtMock := &mocks.TokenServiceMock{
-			DecodeRefreshTokenFunc: func(token string) (string, error) {
-				return "test@email.com", nil
-			},
-		}
-		repoMock := &mocks.RepositoryMock{
-			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
-				return nil, gqlmeetup.ErrNotFound
-			},
-		}
-		r := &gqlgen.Resolver{
-			Repository: repoMock,
-			Tokens:     jwtMock,
-		}
-		_, err := r.Mutation().Refresh(context.Background(), "refreshToken")
-		equals(t, gqlmeetup.ErrUnauthorized, err)
-	})
-
-	t.Run("Refresh, token check error", func(t *testing.T) {
-		t.Parallel()
-		jwtMock := &mocks.TokenServiceMock{
-			DecodeRefreshTokenFunc: func(token string) (string, error) {
-				return "test@email.com", nil
-			},
-			CheckRefreshTokenFunc: func(token string, pwdHash string) (*gqlmeetup.RefreshTokenPayload, error) {
-				return nil, errors.New("test error")
-			},
-		}
-		repoMock := &mocks.RepositoryMock{
-			UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
-				return &gqlmeetup.User{
-					Email:    "test@email.com",
-					Password: "hash",
-					Admin:    true,
-				}, nil
-			},
-		}
-		r := &gqlgen.Resolver{
-			Repository: repoMock,
-			Tokens:     jwtMock,
-		}
-		_, err := r.Mutation().Refresh(context.Background(), "refreshToken")
-		equals(t, gqlmeetup.ErrUnauthorized, err)
 	})
 
 	t.Run("AgentCreate", func(t *testing.T) {
