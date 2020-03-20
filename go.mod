@@ -8,7 +8,7 @@ require (
 	github.com/fwojciec/pgtester v0.0.0-20200203082456-9c16d488fda8
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
-	github.com/matryer/moq v0.0.0-20200125112110-7615cbe60268
+	github.com/matryer/moq v0.0.0-20200310130814-7721994d1b54
 	github.com/oklog/run v1.1.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.7.0
