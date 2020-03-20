@@ -15,7 +15,7 @@ import (
 
 func TestAuthorListByAgentID(t *testing.T) {
 	t.Parallel()
-	mock := &mocks.DataLoaderRepositoryMock{
+	mock := &mocks.RepositoryMock{
 		AuthorListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
 			return []*gqlmeetup.Author{&testAuthor1, &testAuthor2, &testAuthor3}, nil
 		},
@@ -45,7 +45,7 @@ func TestAuthorListByAgentID(t *testing.T) {
 
 func TestAgentListByIDs(t *testing.T) {
 	t.Parallel()
-	mock := &mocks.DataLoaderRepositoryMock{
+	mock := &mocks.RepositoryMock{
 		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
 			return []*gqlmeetup.Agent{&testAgent1, &testAgent2, &testAgent3}, nil
 		},
@@ -76,7 +76,7 @@ func TestAgentListByIDs(t *testing.T) {
 
 func TestBookListByAuthorID(t *testing.T) {
 	t.Parallel()
-	mock := &mocks.DataLoaderRepositoryMock{
+	mock := &mocks.RepositoryMock{
 		BookListByAuthorIDsFunc: func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error) {
 			return []*gqlmeetup.Book{&testBook1, &testBook2, &testBook3}, nil
 		},
@@ -106,7 +106,7 @@ func TestBookListByAuthorID(t *testing.T) {
 
 func TestAuthorListByBookID(t *testing.T) {
 	t.Parallel()
-	mock := &mocks.DataLoaderRepositoryMock{
+	mock := &mocks.RepositoryMock{
 		AuthorListByBookIDsFunc: func(ctx context.Context, bookIDs []int64) ([]*gqlmeetup.Author, error) {
 			return []*gqlmeetup.Author{&testAuthor1, &testAuthor2}, nil
 		},

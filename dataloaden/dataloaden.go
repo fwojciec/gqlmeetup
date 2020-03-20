@@ -25,7 +25,7 @@ type loaders struct {
 
 // DataLoaderService implements gqlmeetup.DataLoaderService interface.
 type DataLoaderService struct {
-	Repository gqlmeetup.DataLoaderRepository
+	Repository gqlmeetup.Repository
 }
 
 var _ gqlmeetup.DataLoaderService = (*DataLoaderService)(nil)
@@ -84,7 +84,7 @@ func (s *DataLoaderService) retrieve(ctx context.Context) (*loaders, error) {
 	return l, nil
 }
 
-func newAgentByID(ctx context.Context, repo gqlmeetup.DataLoaderRepository) *AgentLoader {
+func newAgentByID(ctx context.Context, repo gqlmeetup.Repository) *AgentLoader {
 	return NewAgentLoader(AgentLoaderConfig{
 		MaxBatch: 100,
 		Wait:     5 * time.Millisecond,
@@ -106,7 +106,7 @@ func newAgentByID(ctx context.Context, repo gqlmeetup.DataLoaderRepository) *Age
 	})
 }
 
-func newAuthorsByAgentID(ctx context.Context, repo gqlmeetup.DataLoaderRepository) *AuthorSliceLoader {
+func newAuthorsByAgentID(ctx context.Context, repo gqlmeetup.Repository) *AuthorSliceLoader {
 	return NewAuthorSliceLoader(AuthorSliceLoaderConfig{
 		MaxBatch: 100,
 		Wait:     5 * time.Millisecond,
@@ -128,7 +128,7 @@ func newAuthorsByAgentID(ctx context.Context, repo gqlmeetup.DataLoaderRepositor
 	})
 }
 
-func newAuthorsByBookID(ctx context.Context, repo gqlmeetup.DataLoaderRepository) *AuthorSliceLoader {
+func newAuthorsByBookID(ctx context.Context, repo gqlmeetup.Repository) *AuthorSliceLoader {
 	return NewAuthorSliceLoader(AuthorSliceLoaderConfig{
 		MaxBatch: 100,
 		Wait:     5 * time.Millisecond,
@@ -152,7 +152,7 @@ func newAuthorsByBookID(ctx context.Context, repo gqlmeetup.DataLoaderRepository
 	})
 }
 
-func newBooksByAuthorID(ctx context.Context, repo gqlmeetup.DataLoaderRepository) *BookSliceLoader {
+func newBooksByAuthorID(ctx context.Context, repo gqlmeetup.Repository) *BookSliceLoader {
 	return NewBookSliceLoader(BookSliceLoaderConfig{
 		MaxBatch: 100,
 		Wait:     5 * time.Millisecond,

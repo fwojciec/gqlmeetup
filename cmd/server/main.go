@@ -33,14 +33,11 @@ func main() {
 	// init resolver repository
 	r := &postgres.Repository{DB: db}
 
-	// init dataloader repository
-	dlr := &postgres.DataLoaderRepository{DB: db}
-
 	// init password service with default cost
 	ps := &bcrypt.PasswordService{}
 
 	// init dataloader service
-	dls := &dataloaden.DataLoaderService{Repository: dlr}
+	dls := &dataloaden.DataLoaderService{Repository: r}
 
 	// init sessions service with default values
 	ss := scs.New()

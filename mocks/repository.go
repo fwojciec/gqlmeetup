@@ -10,22 +10,27 @@ import (
 )
 
 var (
-	lockRepositoryMockAgentCreate    sync.RWMutex
-	lockRepositoryMockAgentDelete    sync.RWMutex
-	lockRepositoryMockAgentGetByID   sync.RWMutex
-	lockRepositoryMockAgentList      sync.RWMutex
-	lockRepositoryMockAgentUpdate    sync.RWMutex
-	lockRepositoryMockAuthorCreate   sync.RWMutex
-	lockRepositoryMockAuthorDelete   sync.RWMutex
-	lockRepositoryMockAuthorGetByID  sync.RWMutex
-	lockRepositoryMockAuthorList     sync.RWMutex
-	lockRepositoryMockAuthorUpdate   sync.RWMutex
-	lockRepositoryMockBookCreate     sync.RWMutex
-	lockRepositoryMockBookDelete     sync.RWMutex
-	lockRepositoryMockBookGetByID    sync.RWMutex
-	lockRepositoryMockBookList       sync.RWMutex
-	lockRepositoryMockBookUpdate     sync.RWMutex
-	lockRepositoryMockUserGetByEmail sync.RWMutex
+	lockRepositoryMockAgentCreate          sync.RWMutex
+	lockRepositoryMockAgentDelete          sync.RWMutex
+	lockRepositoryMockAgentGetByID         sync.RWMutex
+	lockRepositoryMockAgentList            sync.RWMutex
+	lockRepositoryMockAgentListByIDs       sync.RWMutex
+	lockRepositoryMockAgentUpdate          sync.RWMutex
+	lockRepositoryMockAuthorCreate         sync.RWMutex
+	lockRepositoryMockAuthorDelete         sync.RWMutex
+	lockRepositoryMockAuthorGetByID        sync.RWMutex
+	lockRepositoryMockAuthorList           sync.RWMutex
+	lockRepositoryMockAuthorListByAgentIDs sync.RWMutex
+	lockRepositoryMockAuthorListByBookIDs  sync.RWMutex
+	lockRepositoryMockAuthorUpdate         sync.RWMutex
+	lockRepositoryMockBookCreate           sync.RWMutex
+	lockRepositoryMockBookDelete           sync.RWMutex
+	lockRepositoryMockBookGetByID          sync.RWMutex
+	lockRepositoryMockBookList             sync.RWMutex
+	lockRepositoryMockBookListByAuthorIDs  sync.RWMutex
+	lockRepositoryMockBookUpdate           sync.RWMutex
+	lockRepositoryMockUserCreate           sync.RWMutex
+	lockRepositoryMockUserGetByEmail       sync.RWMutex
 )
 
 // Ensure, that RepositoryMock does implement gqlmeetup.Repository.
@@ -50,6 +55,9 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             AgentListFunc: func(ctx context.Context) ([]*gqlmeetup.Agent, error) {
 // 	               panic("mock out the AgentList method")
 //             },
+//             AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+// 	               panic("mock out the AgentListByIDs method")
+//             },
 //             AgentUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error) {
 // 	               panic("mock out the AgentUpdate method")
 //             },
@@ -64,6 +72,12 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             },
 //             AuthorListFunc: func(ctx context.Context) ([]*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorList method")
+//             },
+//             AuthorListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByAgentIDs method")
+//             },
+//             AuthorListByBookIDsFunc: func(ctx context.Context, bookIDs []int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByBookIDs method")
 //             },
 //             AuthorUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Author) (*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorUpdate method")
@@ -80,8 +94,14 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             BookListFunc: func(ctx context.Context) ([]*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookList method")
 //             },
+//             BookListByAuthorIDsFunc: func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error) {
+// 	               panic("mock out the BookListByAuthorIDs method")
+//             },
 //             BookUpdateFunc: func(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookUpdate method")
+//             },
+//             UserCreateFunc: func(data gqlmeetup.User) error {
+// 	               panic("mock out the UserCreate method")
 //             },
 //             UserGetByEmailFunc: func(ctx context.Context, email string) (*gqlmeetup.User, error) {
 // 	               panic("mock out the UserGetByEmail method")
@@ -105,6 +125,9 @@ type RepositoryMock struct {
 	// AgentListFunc mocks the AgentList method.
 	AgentListFunc func(ctx context.Context) ([]*gqlmeetup.Agent, error)
 
+	// AgentListByIDsFunc mocks the AgentListByIDs method.
+	AgentListByIDsFunc func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error)
+
 	// AgentUpdateFunc mocks the AgentUpdate method.
 	AgentUpdateFunc func(ctx context.Context, id int64, data gqlmeetup.Agent) (*gqlmeetup.Agent, error)
 
@@ -119,6 +142,12 @@ type RepositoryMock struct {
 
 	// AuthorListFunc mocks the AuthorList method.
 	AuthorListFunc func(ctx context.Context) ([]*gqlmeetup.Author, error)
+
+	// AuthorListByAgentIDsFunc mocks the AuthorListByAgentIDs method.
+	AuthorListByAgentIDsFunc func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error)
+
+	// AuthorListByBookIDsFunc mocks the AuthorListByBookIDs method.
+	AuthorListByBookIDsFunc func(ctx context.Context, bookIDs []int64) ([]*gqlmeetup.Author, error)
 
 	// AuthorUpdateFunc mocks the AuthorUpdate method.
 	AuthorUpdateFunc func(ctx context.Context, id int64, data gqlmeetup.Author) (*gqlmeetup.Author, error)
@@ -135,8 +164,14 @@ type RepositoryMock struct {
 	// BookListFunc mocks the BookList method.
 	BookListFunc func(ctx context.Context) ([]*gqlmeetup.Book, error)
 
+	// BookListByAuthorIDsFunc mocks the BookListByAuthorIDs method.
+	BookListByAuthorIDsFunc func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error)
+
 	// BookUpdateFunc mocks the BookUpdate method.
 	BookUpdateFunc func(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error)
+
+	// UserCreateFunc mocks the UserCreate method.
+	UserCreateFunc func(data gqlmeetup.User) error
 
 	// UserGetByEmailFunc mocks the UserGetByEmail method.
 	UserGetByEmailFunc func(ctx context.Context, email string) (*gqlmeetup.User, error)
@@ -168,6 +203,13 @@ type RepositoryMock struct {
 		AgentList []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
+		}
+		// AgentListByIDs holds details about calls to the AgentListByIDs method.
+		AgentListByIDs []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Ids is the ids argument value.
+			Ids []int64
 		}
 		// AgentUpdate holds details about calls to the AgentUpdate method.
 		AgentUpdate []struct {
@@ -203,6 +245,20 @@ type RepositoryMock struct {
 		AuthorList []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
+		}
+		// AuthorListByAgentIDs holds details about calls to the AuthorListByAgentIDs method.
+		AuthorListByAgentIDs []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// AgentIDs is the agentIDs argument value.
+			AgentIDs []int64
+		}
+		// AuthorListByBookIDs holds details about calls to the AuthorListByBookIDs method.
+		AuthorListByBookIDs []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// BookIDs is the bookIDs argument value.
+			BookIDs []int64
 		}
 		// AuthorUpdate holds details about calls to the AuthorUpdate method.
 		AuthorUpdate []struct {
@@ -241,6 +297,13 @@ type RepositoryMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 		}
+		// BookListByAuthorIDs holds details about calls to the BookListByAuthorIDs method.
+		BookListByAuthorIDs []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// AuthorIDs is the authorIDs argument value.
+			AuthorIDs []int64
+		}
 		// BookUpdate holds details about calls to the BookUpdate method.
 		BookUpdate []struct {
 			// Ctx is the ctx argument value.
@@ -251,6 +314,11 @@ type RepositoryMock struct {
 			Data gqlmeetup.Book
 			// AuthorIDs is the authorIDs argument value.
 			AuthorIDs []int64
+		}
+		// UserCreate holds details about calls to the UserCreate method.
+		UserCreate []struct {
+			// Data is the data argument value.
+			Data gqlmeetup.User
 		}
 		// UserGetByEmail holds details about calls to the UserGetByEmail method.
 		UserGetByEmail []struct {
@@ -395,6 +463,41 @@ func (mock *RepositoryMock) AgentListCalls() []struct {
 	lockRepositoryMockAgentList.RLock()
 	calls = mock.calls.AgentList
 	lockRepositoryMockAgentList.RUnlock()
+	return calls
+}
+
+// AgentListByIDs calls AgentListByIDsFunc.
+func (mock *RepositoryMock) AgentListByIDs(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) {
+	if mock.AgentListByIDsFunc == nil {
+		panic("RepositoryMock.AgentListByIDsFunc: method is nil but Repository.AgentListByIDs was just called")
+	}
+	callInfo := struct {
+		Ctx context.Context
+		Ids []int64
+	}{
+		Ctx: ctx,
+		Ids: ids,
+	}
+	lockRepositoryMockAgentListByIDs.Lock()
+	mock.calls.AgentListByIDs = append(mock.calls.AgentListByIDs, callInfo)
+	lockRepositoryMockAgentListByIDs.Unlock()
+	return mock.AgentListByIDsFunc(ctx, ids)
+}
+
+// AgentListByIDsCalls gets all the calls that were made to AgentListByIDs.
+// Check the length with:
+//     len(mockedRepository.AgentListByIDsCalls())
+func (mock *RepositoryMock) AgentListByIDsCalls() []struct {
+	Ctx context.Context
+	Ids []int64
+} {
+	var calls []struct {
+		Ctx context.Context
+		Ids []int64
+	}
+	lockRepositoryMockAgentListByIDs.RLock()
+	calls = mock.calls.AgentListByIDs
+	lockRepositoryMockAgentListByIDs.RUnlock()
 	return calls
 }
 
@@ -570,6 +673,76 @@ func (mock *RepositoryMock) AuthorListCalls() []struct {
 	lockRepositoryMockAuthorList.RLock()
 	calls = mock.calls.AuthorList
 	lockRepositoryMockAuthorList.RUnlock()
+	return calls
+}
+
+// AuthorListByAgentIDs calls AuthorListByAgentIDsFunc.
+func (mock *RepositoryMock) AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByAgentIDsFunc == nil {
+		panic("RepositoryMock.AuthorListByAgentIDsFunc: method is nil but Repository.AuthorListByAgentIDs was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		AgentIDs []int64
+	}{
+		Ctx:      ctx,
+		AgentIDs: agentIDs,
+	}
+	lockRepositoryMockAuthorListByAgentIDs.Lock()
+	mock.calls.AuthorListByAgentIDs = append(mock.calls.AuthorListByAgentIDs, callInfo)
+	lockRepositoryMockAuthorListByAgentIDs.Unlock()
+	return mock.AuthorListByAgentIDsFunc(ctx, agentIDs)
+}
+
+// AuthorListByAgentIDsCalls gets all the calls that were made to AuthorListByAgentIDs.
+// Check the length with:
+//     len(mockedRepository.AuthorListByAgentIDsCalls())
+func (mock *RepositoryMock) AuthorListByAgentIDsCalls() []struct {
+	Ctx      context.Context
+	AgentIDs []int64
+} {
+	var calls []struct {
+		Ctx      context.Context
+		AgentIDs []int64
+	}
+	lockRepositoryMockAuthorListByAgentIDs.RLock()
+	calls = mock.calls.AuthorListByAgentIDs
+	lockRepositoryMockAuthorListByAgentIDs.RUnlock()
+	return calls
+}
+
+// AuthorListByBookIDs calls AuthorListByBookIDsFunc.
+func (mock *RepositoryMock) AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByBookIDsFunc == nil {
+		panic("RepositoryMock.AuthorListByBookIDsFunc: method is nil but Repository.AuthorListByBookIDs was just called")
+	}
+	callInfo := struct {
+		Ctx     context.Context
+		BookIDs []int64
+	}{
+		Ctx:     ctx,
+		BookIDs: bookIDs,
+	}
+	lockRepositoryMockAuthorListByBookIDs.Lock()
+	mock.calls.AuthorListByBookIDs = append(mock.calls.AuthorListByBookIDs, callInfo)
+	lockRepositoryMockAuthorListByBookIDs.Unlock()
+	return mock.AuthorListByBookIDsFunc(ctx, bookIDs)
+}
+
+// AuthorListByBookIDsCalls gets all the calls that were made to AuthorListByBookIDs.
+// Check the length with:
+//     len(mockedRepository.AuthorListByBookIDsCalls())
+func (mock *RepositoryMock) AuthorListByBookIDsCalls() []struct {
+	Ctx     context.Context
+	BookIDs []int64
+} {
+	var calls []struct {
+		Ctx     context.Context
+		BookIDs []int64
+	}
+	lockRepositoryMockAuthorListByBookIDs.RLock()
+	calls = mock.calls.AuthorListByBookIDs
+	lockRepositoryMockAuthorListByBookIDs.RUnlock()
 	return calls
 }
 
@@ -752,6 +925,41 @@ func (mock *RepositoryMock) BookListCalls() []struct {
 	return calls
 }
 
+// BookListByAuthorIDs calls BookListByAuthorIDsFunc.
+func (mock *RepositoryMock) BookListByAuthorIDs(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error) {
+	if mock.BookListByAuthorIDsFunc == nil {
+		panic("RepositoryMock.BookListByAuthorIDsFunc: method is nil but Repository.BookListByAuthorIDs was just called")
+	}
+	callInfo := struct {
+		Ctx       context.Context
+		AuthorIDs []int64
+	}{
+		Ctx:       ctx,
+		AuthorIDs: authorIDs,
+	}
+	lockRepositoryMockBookListByAuthorIDs.Lock()
+	mock.calls.BookListByAuthorIDs = append(mock.calls.BookListByAuthorIDs, callInfo)
+	lockRepositoryMockBookListByAuthorIDs.Unlock()
+	return mock.BookListByAuthorIDsFunc(ctx, authorIDs)
+}
+
+// BookListByAuthorIDsCalls gets all the calls that were made to BookListByAuthorIDs.
+// Check the length with:
+//     len(mockedRepository.BookListByAuthorIDsCalls())
+func (mock *RepositoryMock) BookListByAuthorIDsCalls() []struct {
+	Ctx       context.Context
+	AuthorIDs []int64
+} {
+	var calls []struct {
+		Ctx       context.Context
+		AuthorIDs []int64
+	}
+	lockRepositoryMockBookListByAuthorIDs.RLock()
+	calls = mock.calls.BookListByAuthorIDs
+	lockRepositoryMockBookListByAuthorIDs.RUnlock()
+	return calls
+}
+
 // BookUpdate calls BookUpdateFunc.
 func (mock *RepositoryMock) BookUpdate(ctx context.Context, id int64, data gqlmeetup.Book, authorIDs []int64) (*gqlmeetup.Book, error) {
 	if mock.BookUpdateFunc == nil {
@@ -792,6 +1000,37 @@ func (mock *RepositoryMock) BookUpdateCalls() []struct {
 	lockRepositoryMockBookUpdate.RLock()
 	calls = mock.calls.BookUpdate
 	lockRepositoryMockBookUpdate.RUnlock()
+	return calls
+}
+
+// UserCreate calls UserCreateFunc.
+func (mock *RepositoryMock) UserCreate(data gqlmeetup.User) error {
+	if mock.UserCreateFunc == nil {
+		panic("RepositoryMock.UserCreateFunc: method is nil but Repository.UserCreate was just called")
+	}
+	callInfo := struct {
+		Data gqlmeetup.User
+	}{
+		Data: data,
+	}
+	lockRepositoryMockUserCreate.Lock()
+	mock.calls.UserCreate = append(mock.calls.UserCreate, callInfo)
+	lockRepositoryMockUserCreate.Unlock()
+	return mock.UserCreateFunc(data)
+}
+
+// UserCreateCalls gets all the calls that were made to UserCreate.
+// Check the length with:
+//     len(mockedRepository.UserCreateCalls())
+func (mock *RepositoryMock) UserCreateCalls() []struct {
+	Data gqlmeetup.User
+} {
+	var calls []struct {
+		Data gqlmeetup.User
+	}
+	lockRepositoryMockUserCreate.RLock()
+	calls = mock.calls.UserCreate
+	lockRepositoryMockUserCreate.RUnlock()
 	return calls
 }
 

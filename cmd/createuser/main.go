@@ -42,8 +42,8 @@ func main() {
 	}
 	defer db.Close()
 
-	// init cli repository
-	r := &postgres.CLIRepository{DB: db}
+	// init repository
+	r := &postgres.Repository{DB: db}
 
 	// init password service with default cost
 	ps := &bcrypt.PasswordService{}

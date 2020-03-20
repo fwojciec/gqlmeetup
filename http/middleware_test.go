@@ -17,10 +17,10 @@ import (
 
 func TestDataLoaderMiddleware(t *testing.T) {
 	t.Parallel()
-	dlRepo := &mocks.DataLoaderRepositoryMock{
+	repo := &mocks.RepositoryMock{
 		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) { return nil, nil },
 	}
-	dls := &dataloaden.DataLoaderService{Repository: dlRepo}
+	dls := &dataloaden.DataLoaderService{Repository: repo}
 	dm := myhttp.DataloaderMiddleware(dls)
 	req, _ := http.NewRequest("GET", "/", nil)
 	handler := dm(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {

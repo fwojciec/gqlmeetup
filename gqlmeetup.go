@@ -43,37 +43,34 @@ type BookAuthor struct {
 
 // Repository represents database functionality.
 type Repository interface {
+	// Agent
 	AgentCreate(ctx context.Context, data Agent) (*Agent, error)
 	AgentDelete(ctx context.Context, id int64) (*Agent, error)
 	AgentGetByID(ctx context.Context, id int64) (*Agent, error)
 	AgentList(ctx context.Context) ([]*Agent, error)
+	AgentListByIDs(ctx context.Context, ids []int64) ([]*Agent, error)
 	AgentUpdate(ctx context.Context, id int64, data Agent) (*Agent, error)
+
+	// Author
 	AuthorCreate(ctx context.Context, data Author) (*Author, error)
 	AuthorDelete(ctx context.Context, id int64) (*Author, error)
 	AuthorGetByID(ctx context.Context, id int64) (*Author, error)
 	AuthorList(ctx context.Context) ([]*Author, error)
+	AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
+	AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*Author, error)
 	AuthorUpdate(ctx context.Context, id int64, data Author) (*Author, error)
+
+	// Book
 	BookCreate(ctx context.Context, data Book, authorIDs []int64) (*Book, error)
 	BookDelete(ctx context.Context, id int64) (*Book, error)
 	BookGetByID(ctx context.Context, id int64) (*Book, error)
 	BookList(ctx context.Context) ([]*Book, error)
-	BookUpdate(ctx context.Context, id int64, data Book, authorIDs []int64) (*Book, error)
-	UserGetByEmail(ctx context.Context, email string) (*User, error)
-}
-
-// DataLoaderRepository represents database functionality used by the dataloader
-// service.
-type DataLoaderRepository interface {
-	AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
-	AgentListByIDs(ctx context.Context, ids []int64) ([]*Agent, error)
 	BookListByAuthorIDs(ctx context.Context, authorIDs []int64) ([]*Book, error)
-	AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*Author, error)
-}
+	BookUpdate(ctx context.Context, id int64, data Book, authorIDs []int64) (*Book, error)
 
-// CLIRepository represents database functionality used by the command line
-// interface.
-type CLIRepository interface {
+	// User
 	UserCreate(data User) error
+	UserGetByEmail(ctx context.Context, email string) (*User, error)
 }
 
 // DataLoaderService provides dataloader functionality for the resolvers.
