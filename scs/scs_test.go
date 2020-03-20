@@ -34,12 +34,13 @@ func TestSessionManager(t *testing.T) {
 	sm := ss.Middleware()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := ss.Login(r.Context(), &gqlmeetup.User{Email: "testEmail", Admin: true})
+		err := ss.Login(r.Context(), &gqlmeetup.User{Email: "testEmail", Admin: true, Password: "something"})
 		ok(t, err)
 	}))
 	mux.HandleFunc("/check1", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := ss.GetUser(r.Context())
 		equals(t, "testEmail", user.Email)
+		equals(t, "", user.Password)
 		equals(t, true, user.Admin)
 	}))
 	mux.HandleFunc("/logout", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
