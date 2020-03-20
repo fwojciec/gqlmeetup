@@ -14,20 +14,6 @@ import (
 	"github.com/fwojciec/gqlmeetup/scs"
 )
 
-type testServer struct {
-	*httptest.Server
-}
-
-func newTestServer(t *testing.T, h http.Handler) *testServer {
-	ts := httptest.NewTLSServer(h)
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ts.Client().Jar = jar
-	return &testServer{ts}
-}
-
 func TestSessionManager(t *testing.T) {
 	t.Parallel()
 	ss := scs.New()
@@ -57,6 +43,16 @@ func TestSessionManager(t *testing.T) {
 	_, _ = ts.Client().Get(ts.URL + "/check1")
 	_, _ = ts.Client().Get(ts.URL + "/logout")
 	_, _ = ts.Client().Get(ts.URL + "/check2")
+}
+
+func newTestServer(t *testing.T, h http.Handler) *httptest.Server {
+	ts := httptest.NewTLSServer(h)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts.Client().Jar = jar
+	return ts
 }
 
 // ok fails the test if an err is not nil.
