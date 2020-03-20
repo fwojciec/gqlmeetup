@@ -7,7 +7,7 @@ import (
 	"github.com/fwojciec/gqlmeetup"
 )
 
-// HasRole verifies the user authorization for a particular resource.
+// HasRole verifies the user authorization for a resource.
 func HasRole(session gqlmeetup.SessionService) func(context.Context, interface{}, graphql.Resolver, Role) (interface{}, error) {
 	return func(ctx context.Context, obj interface{}, next graphql.Resolver, role Role) (interface{}, error) {
 		user := session.GetUser(ctx)

@@ -15,6 +15,8 @@ type Resolver struct {
 	Session     gqlmeetup.SessionService
 }
 
+// Agent Resolver -------------------------------------------------------------
+
 func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, error) {
 	return int64ToString(obj.ID), nil
 }
@@ -22,6 +24,8 @@ func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, e
 func (r *agentResolver) Authors(ctx context.Context, obj *gqlmeetup.Agent) ([]*gqlmeetup.Author, error) {
 	return r.DataLoaders.AuthorListByAgentID(ctx, obj.ID)
 }
+
+// Author Resolver ------------------------------------------------------------
 
 func (r *authorResolver) ID(ctx context.Context, obj *gqlmeetup.Author) (string, error) {
 	return int64ToString(obj.ID), nil
@@ -35,6 +39,8 @@ func (r *authorResolver) Books(ctx context.Context, obj *gqlmeetup.Author) ([]*g
 	return r.DataLoaders.BookListByAuthorID(ctx, obj.ID)
 }
 
+// Book Resolver --------------------------------------------------------------
+
 func (r *bookResolver) ID(ctx context.Context, obj *gqlmeetup.Book) (string, error) {
 	return int64ToString(obj.ID), nil
 }
@@ -42,6 +48,8 @@ func (r *bookResolver) ID(ctx context.Context, obj *gqlmeetup.Book) (string, err
 func (r *bookResolver) Authors(ctx context.Context, obj *gqlmeetup.Book) ([]*gqlmeetup.Author, error) {
 	return r.DataLoaders.AuthorListByBookID(ctx, obj.ID)
 }
+
+// Mutation Resolver ----------------------------------------------------------
 
 func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*gqlmeetup.User, error) {
 	user, err := r.Repository.UserGetByEmail(ctx, email)
@@ -190,6 +198,8 @@ func (r *mutationResolver) BookDelete(ctx context.Context, id string) (*gqlmeetu
 	}
 	return res, nil
 }
+
+// Query Resolver -------------------------------------------------------------
 
 func (r *queryResolver) Agent(ctx context.Context, id string) (*gqlmeetup.Agent, error) {
 	agentID, err := stringToInt64(id)

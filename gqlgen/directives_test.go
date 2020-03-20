@@ -9,7 +9,7 @@ import (
 	"github.com/fwojciec/gqlmeetup/mocks"
 )
 
-func TestHasRoleAdmin(t *testing.T) {
+func TestHasRoleDirective(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
