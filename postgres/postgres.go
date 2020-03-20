@@ -15,9 +15,9 @@ func Open(dataSourceName string) (*sqlx.DB, error) {
 }
 
 // batchify is a helper function for batch inserts. It can be used to create
-// entries is associative tables (for example book_authors, client_territories,
-// etc.). It generates a query prefix with placeholders and a slice of arguments
-// that correspond to these placeholders.
+// entries is associative tables (for example book_authors, etc.). It generates
+// a query prefix with placeholders and a slice of arguments that correspond to
+// these placeholders.
 func batchify(pid int64, cids []int64) (string, []interface{}) {
 	args := make([]interface{}, len(cids)*2)
 	var buf bytes.Buffer
