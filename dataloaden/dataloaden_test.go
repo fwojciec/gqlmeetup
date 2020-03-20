@@ -3,6 +3,7 @@ package dataloaden_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -133,6 +134,20 @@ func TestAuthorListByBookID(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestMiddleware(t *testing.T) {
+	t.Parallel()
+	repo := &mocks.RepositoryMock{
+		AgentListByIDsFunc: func(ctx context.Context, ids []int64) ([]*gqlmeetup.Agent, error) { return nil, nil },
+	}
+	dls := &dataloaden.DataLoaderService{Repository: repo}
+	req, _ := http.NewRequest("GET", "/", nil)
+	handler := dls.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		_, err := dls.AgentGetByID(r.Context(), 1)
+		ok(t, err)
+	}))
+	handler.ServeHTTP(nil, req)
 }
 
 var (

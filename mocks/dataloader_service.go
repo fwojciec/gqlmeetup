@@ -6,6 +6,7 @@ package mocks
 import (
 	"context"
 	"github.com/fwojciec/gqlmeetup"
+	"net/http"
 	"sync"
 )
 
@@ -15,6 +16,7 @@ var (
 	lockDataLoaderServiceMockAuthorListByBookID  sync.RWMutex
 	lockDataLoaderServiceMockBookListByAuthorID  sync.RWMutex
 	lockDataLoaderServiceMockInitialize          sync.RWMutex
+	lockDataLoaderServiceMockMiddleware          sync.RWMutex
 )
 
 // Ensure, that DataLoaderServiceMock does implement gqlmeetup.DataLoaderService.
@@ -42,6 +44,9 @@ var _ gqlmeetup.DataLoaderService = &DataLoaderServiceMock{}
 //             InitializeFunc: func(ctx context.Context) context.Context {
 // 	               panic("mock out the Initialize method")
 //             },
+//             MiddlewareFunc: func(in1 http.Handler) http.Handler {
+// 	               panic("mock out the Middleware method")
+//             },
 //         }
 //
 //         // use mockedDataLoaderService in code that requires gqlmeetup.DataLoaderService
@@ -63,6 +68,9 @@ type DataLoaderServiceMock struct {
 
 	// InitializeFunc mocks the Initialize method.
 	InitializeFunc func(ctx context.Context) context.Context
+
+	// MiddlewareFunc mocks the Middleware method.
+	MiddlewareFunc func(in1 http.Handler) http.Handler
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -98,6 +106,11 @@ type DataLoaderServiceMock struct {
 		Initialize []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
+		}
+		// Middleware holds details about calls to the Middleware method.
+		Middleware []struct {
+			// In1 is the in1 argument value.
+			In1 http.Handler
 		}
 	}
 }
@@ -270,5 +283,36 @@ func (mock *DataLoaderServiceMock) InitializeCalls() []struct {
 	lockDataLoaderServiceMockInitialize.RLock()
 	calls = mock.calls.Initialize
 	lockDataLoaderServiceMockInitialize.RUnlock()
+	return calls
+}
+
+// Middleware calls MiddlewareFunc.
+func (mock *DataLoaderServiceMock) Middleware(in1 http.Handler) http.Handler {
+	if mock.MiddlewareFunc == nil {
+		panic("DataLoaderServiceMock.MiddlewareFunc: method is nil but DataLoaderService.Middleware was just called")
+	}
+	callInfo := struct {
+		In1 http.Handler
+	}{
+		In1: in1,
+	}
+	lockDataLoaderServiceMockMiddleware.Lock()
+	mock.calls.Middleware = append(mock.calls.Middleware, callInfo)
+	lockDataLoaderServiceMockMiddleware.Unlock()
+	return mock.MiddlewareFunc(in1)
+}
+
+// MiddlewareCalls gets all the calls that were made to Middleware.
+// Check the length with:
+//     len(mockedDataLoaderService.MiddlewareCalls())
+func (mock *DataLoaderServiceMock) MiddlewareCalls() []struct {
+	In1 http.Handler
+} {
+	var calls []struct {
+		In1 http.Handler
+	}
+	lockDataLoaderServiceMockMiddleware.RLock()
+	calls = mock.calls.Middleware
+	lockDataLoaderServiceMockMiddleware.RUnlock()
 	return calls
 }

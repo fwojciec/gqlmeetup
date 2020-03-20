@@ -20,9 +20,7 @@ type Server struct {
 // Run runs the server.
 func (s *Server) Run(ln net.Listener) error {
 	mux := http.NewServeMux()
-	dm := DataloaderMiddleware(s.DataLoaderService)
-	sm := s.SessionService.Middleware()
-	mux.Handle("/query", sm(dm(s.QueryHandler)))
+	mux.Handle("/query", s.SessionService.Middleware(s.DataLoaderService.Middleware(s.QueryHandler)))
 	mux.Handle("/", s.PlaygroundHandler("/query"))
 	handler := cors.Default().Handler(mux)
 	server := &http.Server{

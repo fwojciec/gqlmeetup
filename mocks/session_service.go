@@ -36,7 +36,7 @@ var _ gqlmeetup.SessionService = &SessionServiceMock{}
 //             LogoutFunc: func(ctx context.Context) error {
 // 	               panic("mock out the Logout method")
 //             },
-//             MiddlewareFunc: func() func(http.Handler) http.Handler {
+//             MiddlewareFunc: func(in1 http.Handler) http.Handler {
 // 	               panic("mock out the Middleware method")
 //             },
 //         }
@@ -56,7 +56,7 @@ type SessionServiceMock struct {
 	LogoutFunc func(ctx context.Context) error
 
 	// MiddlewareFunc mocks the Middleware method.
-	MiddlewareFunc func() func(http.Handler) http.Handler
+	MiddlewareFunc func(in1 http.Handler) http.Handler
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -79,6 +79,8 @@ type SessionServiceMock struct {
 		}
 		// Middleware holds details about calls to the Middleware method.
 		Middleware []struct {
+			// In1 is the in1 argument value.
+			In1 http.Handler
 		}
 	}
 }
@@ -181,24 +183,29 @@ func (mock *SessionServiceMock) LogoutCalls() []struct {
 }
 
 // Middleware calls MiddlewareFunc.
-func (mock *SessionServiceMock) Middleware() func(http.Handler) http.Handler {
+func (mock *SessionServiceMock) Middleware(in1 http.Handler) http.Handler {
 	if mock.MiddlewareFunc == nil {
 		panic("SessionServiceMock.MiddlewareFunc: method is nil but SessionService.Middleware was just called")
 	}
 	callInfo := struct {
-	}{}
+		In1 http.Handler
+	}{
+		In1: in1,
+	}
 	lockSessionServiceMockMiddleware.Lock()
 	mock.calls.Middleware = append(mock.calls.Middleware, callInfo)
 	lockSessionServiceMockMiddleware.Unlock()
-	return mock.MiddlewareFunc()
+	return mock.MiddlewareFunc(in1)
 }
 
 // MiddlewareCalls gets all the calls that were made to Middleware.
 // Check the length with:
 //     len(mockedSessionService.MiddlewareCalls())
 func (mock *SessionServiceMock) MiddlewareCalls() []struct {
+	In1 http.Handler
 } {
 	var calls []struct {
+		In1 http.Handler
 	}
 	lockSessionServiceMockMiddleware.RLock()
 	calls = mock.calls.Middleware

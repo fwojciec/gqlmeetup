@@ -80,6 +80,7 @@ type DataLoaderService interface {
 	AuthorListByBookID(ctx context.Context, bookID int64) ([]*Author, error)
 	BookListByAuthorID(ctx context.Context, authorID int64) ([]*Book, error)
 	Initialize(ctx context.Context) context.Context
+	Middleware(http.Handler) http.Handler
 }
 
 // PasswordService performs password checking and hashing.
@@ -93,5 +94,5 @@ type SessionService interface {
 	Login(ctx context.Context, user *User) error
 	Logout(ctx context.Context) error
 	GetUser(ctx context.Context) *User
-	Middleware() func(http.Handler) http.Handler
+	Middleware(http.Handler) http.Handler
 }

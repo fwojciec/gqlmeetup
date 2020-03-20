@@ -60,8 +60,8 @@ func (s *SessionService) GetUser(ctx context.Context) *gqlmeetup.User {
 
 // Middleware returns a middleware that enables session functionality for the
 // wrapped handlers.
-func (s *SessionService) Middleware() func(http.Handler) http.Handler {
-	return s.sm.LoadAndSave
+func (s *SessionService) Middleware(next http.Handler) http.Handler {
+	return s.sm.LoadAndSave(next)
 }
 
 func (s *SessionService) marshalUser(user *gqlmeetup.User) ([]byte, error) {

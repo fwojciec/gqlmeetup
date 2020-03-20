@@ -17,7 +17,6 @@ import (
 func TestSessionManager(t *testing.T) {
 	t.Parallel()
 	ss := scs.New()
-	sm := ss.Middleware()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := ss.Login(r.Context(), &gqlmeetup.User{Email: "testEmail", Admin: true, Password: "something"})
@@ -37,7 +36,7 @@ func TestSessionManager(t *testing.T) {
 		user := ss.GetUser(r.Context())
 		equals(t, (*gqlmeetup.User)(nil), user)
 	}))
-	ts := newTestServer(t, sm(mux))
+	ts := newTestServer(t, ss.Middleware(mux))
 	defer ts.Close()
 	_, _ = ts.Client().Get(ts.URL + "/login")
 	_, _ = ts.Client().Get(ts.URL + "/check1")

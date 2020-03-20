@@ -6,6 +6,7 @@ package dataloaden
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/fwojciec/gqlmeetup"
@@ -74,6 +75,16 @@ func (s *DataLoaderService) BookListByAuthorID(ctx context.Context, authorID int
 		return nil, err
 	}
 	return l.BooksByAuthorID.Load(authorID)
+}
+
+// Middleware returns the HTTP middleware that enables per-request dataloader functionality.
+func (s *DataLoaderService) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		nextCtx := s.Initialize(ctx)
+		r = r.WithContext(nextCtx)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *DataLoaderService) retrieve(ctx context.Context) (*loaders, error) {
