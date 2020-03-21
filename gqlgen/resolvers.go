@@ -201,6 +201,14 @@ func (r *mutationResolver) BookDelete(ctx context.Context, id string) (*gqlmeetu
 
 // Query Resolver -------------------------------------------------------------
 
+func (r *queryResolver) Me(ctx context.Context) (*gqlmeetup.User, error) {
+	user := r.Session.GetUser(ctx)
+	if user == nil {
+		return nil, gqlmeetup.ErrNotFound
+	}
+	return user, nil
+}
+
 func (r *queryResolver) Agent(ctx context.Context, id string) (*gqlmeetup.Agent, error) {
 	agentID, err := stringToInt64(id)
 	if err != nil {

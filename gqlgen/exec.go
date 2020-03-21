@@ -89,6 +89,7 @@ type ComplexityRoot struct {
 		Authors func(childComplexity int) int
 		Book    func(childComplexity int, id string) int
 		Books   func(childComplexity int) int
+		Me      func(childComplexity int) int
 	}
 
 	User struct {
@@ -128,6 +129,7 @@ type MutationResolver interface {
 	BookUpdate(ctx context.Context, id string, data BookInput) (*gqlmeetup.Book, error)
 }
 type QueryResolver interface {
+	Me(ctx context.Context) (*gqlmeetup.User, error)
 	Agent(ctx context.Context, id string) (*gqlmeetup.Agent, error)
 	Agents(ctx context.Context) ([]*gqlmeetup.Agent, error)
 	Author(ctx context.Context, id string) (*gqlmeetup.Author, error)
@@ -412,6 +414,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Books(childComplexity), true
 
+	case "Query.me":
+		if e.complexity.Query.Me == nil {
+			break
+		}
+
+		return e.complexity.Query.Me(childComplexity), true
+
 	case "User.admin":
 		if e.complexity.User.Admin == nil {
 			break
@@ -531,6 +540,7 @@ type Book {
 }
 
 type Query {
+  me: User! @hasRole(role: USER)
   agent(id: ID!): Agent
   agents: [Agent!]!
   author(id: ID!): Author
@@ -1909,6 +1919,64 @@ func (ec *executionContext) _Mutation_bookUpdate(ctx context.Context, field grap
 	res := resTmp.(*gqlmeetup.Book)
 	fc.Result = res
 	return ec.marshalNBook2ᚖgithubᚗcomᚋfwojciecᚋgqlmeetupᚐBook(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Me(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋfwojciecᚋgqlmeetupᚋgqlgenᚐRole(ctx, "USER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*gqlmeetup.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fwojciec/gqlmeetup.User`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*gqlmeetup.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋfwojciecᚋgqlmeetupᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_agent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3713,6 +3781,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "me":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_me(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "agent":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

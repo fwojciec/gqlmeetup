@@ -312,6 +312,41 @@ func TestMutationResolverBookUpdate(t *testing.T) {
 
 // Query Resolver -------------------------------------------------------------
 
+func TestQueryResolverMe(t *testing.T) {
+	t.Parallel()
+	testUser := &gqlmeetup.User{
+		Email: "test@email.com",
+		Admin: true,
+	}
+	tests := []struct {
+		name     string
+		loggedIn bool
+		expUser  *gqlmeetup.User
+		expErr   error
+	}{
+		{"logged in", true, testUser, nil},
+		{"logged out", false, nil, gqlmeetup.ErrNotFound},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			sessionMock := &mocks.SessionServiceMock{
+				GetUserFunc: func(ctx context.Context) *gqlmeetup.User {
+					if tc.loggedIn {
+						return testUser
+					}
+					return nil
+				},
+			}
+			r := &gqlgen.Resolver{Session: sessionMock}
+			res, err := r.Query().Me(context.Background())
+			equals(t, tc.expErr, err)
+			equals(t, tc.expUser, res)
+		})
+	}
+}
+
 func TestQueryResolverAgent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

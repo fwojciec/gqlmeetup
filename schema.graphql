@@ -32,6 +32,7 @@ type Book {
 }
 
 type Query {
+  me: User! @hasRole(role: USER)
   agent(id: ID!): Agent
   agents: [Agent!]!
   author(id: ID!): Author
