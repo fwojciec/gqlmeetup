@@ -254,12 +254,12 @@ func (r *Repository) BookGetByID(ctx context.Context, id int64) (*gqlmeetup.Book
 }
 
 const bookListQuery = `
-SELECT * FROM books;`
+SELECT * FROM books ORDER BY title LIMIT $1 OFFSET $2;`
 
 // BookList lists all books.
-func (r *Repository) BookList(ctx context.Context) ([]*gqlmeetup.Book, error) {
+func (r *Repository) BookList(ctx context.Context, limit *int, offset *int) ([]*gqlmeetup.Book, error) {
 	res := make([]*gqlmeetup.Book, 0)
-	if err := r.DB.SelectContext(ctx, &res, bookListQuery); err != nil {
+	if err := r.DB.SelectContext(ctx, &res, bookListQuery, limit, offset); err != nil {
 		return nil, err
 	}
 	return res, nil

@@ -308,12 +308,28 @@ func TestBookGetByID(t *testing.T) {
 
 func TestBookList(t *testing.T) {
 	t.Parallel()
-	pgt.Runner(t, []string{"books"}, func(t *testing.T, sdb *sqlx.DB) {
-		repo := &postgres.Repository{DB: sdb}
-		res, err := repo.BookList(context.Background())
-		ok(t, err)
-		equals(t, []*gqlmeetup.Book{&testBook1, &testBook2, &testBook3}, res)
-	})
+	tests := []struct {
+		name   string
+		limit  *int
+		offset *int
+		exp    []*gqlmeetup.Book
+	}{
+		{"no limit or offset", nil, nil, []*gqlmeetup.Book{&testBook1, &testBook2, &testBook3}},
+		{"the second result", intToPtr(1), intToPtr(1), []*gqlmeetup.Book{&testBook2}},
+		{"the first result", intToPtr(1), nil, []*gqlmeetup.Book{&testBook1}},
+		{"the first result explicit offset", intToPtr(1), intToPtr(0), []*gqlmeetup.Book{&testBook1}},
+	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			pgt.Runner(t, []string{"books"}, func(t *testing.T, sdb *sqlx.DB) {
+				repo := &postgres.Repository{DB: sdb}
+				res, err := repo.BookList(context.Background(), tc.limit, tc.offset)
+				ok(t, err)
+				equals(t, tc.exp, res)
+			})
+		})
+	}
 }
 
 func TestBookListByAuthorIDs(t *testing.T) {
@@ -423,4 +439,8 @@ func TestUserGetByEmail(t *testing.T) {
 			})
 		})
 	}
+}
+
+func intToPtr(i int) *int {
+	return &i
 }

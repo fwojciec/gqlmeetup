@@ -453,12 +453,13 @@ func TestQueryResolverBook(t *testing.T) {
 func TestQueryResolverBooks(t *testing.T) {
 	t.Parallel()
 	repoMock := &mocks.RepositoryMock{
-		BookListFunc: func(ctx context.Context) ([]*gqlmeetup.Book, error) { return nil, nil },
+		BookListFunc: func(ctx context.Context, limit, offset *int) ([]*gqlmeetup.Book, error) { return nil, nil },
 	}
 	r := &gqlgen.Resolver{Repository: repoMock}
-	_, err := r.Query().Books(context.Background())
+	_, err := r.Query().Books(context.Background(), intToPtr(2), nil)
 	ok(t, err)
-	equals(t, len(repoMock.BookListCalls()), 1)
+	equals(t, repoMock.BookListCalls()[0].Limit, intToPtr(2))
+	equals(t, repoMock.BookListCalls()[0].Offset, (*int)(nil))
 }
 
 // ok fails the test if an err is not nil.
@@ -477,4 +478,8 @@ func equals(tb testing.TB, exp, act interface{}) {
 		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
 		tb.FailNow()
 	}
+}
+
+func intToPtr(i int) *int {
+	return &i
 }

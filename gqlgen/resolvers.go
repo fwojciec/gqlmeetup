@@ -261,8 +261,8 @@ func (r *queryResolver) Book(ctx context.Context, id string) (*gqlmeetup.Book, e
 	return book, nil
 }
 
-func (r *queryResolver) Books(ctx context.Context) ([]*gqlmeetup.Book, error) {
-	books, err := r.Repository.BookList(ctx)
+func (r *queryResolver) Books(ctx context.Context, limit *int, offset *int) ([]*gqlmeetup.Book, error) {
+	books, err := r.Repository.BookList(ctx, limit, offset)
 	if err != nil {
 		return nil, err
 	}

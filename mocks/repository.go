@@ -91,7 +91,7 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             BookGetByIDFunc: func(ctx context.Context, id int64) (*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookGetByID method")
 //             },
-//             BookListFunc: func(ctx context.Context) ([]*gqlmeetup.Book, error) {
+//             BookListFunc: func(ctx context.Context, limit *int, offset *int) ([]*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookList method")
 //             },
 //             BookListByAuthorIDsFunc: func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error) {
@@ -162,7 +162,7 @@ type RepositoryMock struct {
 	BookGetByIDFunc func(ctx context.Context, id int64) (*gqlmeetup.Book, error)
 
 	// BookListFunc mocks the BookList method.
-	BookListFunc func(ctx context.Context) ([]*gqlmeetup.Book, error)
+	BookListFunc func(ctx context.Context, limit *int, offset *int) ([]*gqlmeetup.Book, error)
 
 	// BookListByAuthorIDsFunc mocks the BookListByAuthorIDs method.
 	BookListByAuthorIDsFunc func(ctx context.Context, authorIDs []int64) ([]*gqlmeetup.Book, error)
@@ -296,6 +296,10 @@ type RepositoryMock struct {
 		BookList []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
+			// Limit is the limit argument value.
+			Limit *int
+			// Offset is the offset argument value.
+			Offset *int
 		}
 		// BookListByAuthorIDs holds details about calls to the BookListByAuthorIDs method.
 		BookListByAuthorIDs []struct {
@@ -895,29 +899,37 @@ func (mock *RepositoryMock) BookGetByIDCalls() []struct {
 }
 
 // BookList calls BookListFunc.
-func (mock *RepositoryMock) BookList(ctx context.Context) ([]*gqlmeetup.Book, error) {
+func (mock *RepositoryMock) BookList(ctx context.Context, limit *int, offset *int) ([]*gqlmeetup.Book, error) {
 	if mock.BookListFunc == nil {
 		panic("RepositoryMock.BookListFunc: method is nil but Repository.BookList was just called")
 	}
 	callInfo := struct {
-		Ctx context.Context
+		Ctx    context.Context
+		Limit  *int
+		Offset *int
 	}{
-		Ctx: ctx,
+		Ctx:    ctx,
+		Limit:  limit,
+		Offset: offset,
 	}
 	lockRepositoryMockBookList.Lock()
 	mock.calls.BookList = append(mock.calls.BookList, callInfo)
 	lockRepositoryMockBookList.Unlock()
-	return mock.BookListFunc(ctx)
+	return mock.BookListFunc(ctx, limit, offset)
 }
 
 // BookListCalls gets all the calls that were made to BookList.
 // Check the length with:
 //     len(mockedRepository.BookListCalls())
 func (mock *RepositoryMock) BookListCalls() []struct {
-	Ctx context.Context
+	Ctx    context.Context
+	Limit  *int
+	Offset *int
 } {
 	var calls []struct {
-		Ctx context.Context
+		Ctx    context.Context
+		Limit  *int
+		Offset *int
 	}
 	lockRepositoryMockBookList.RLock()
 	calls = mock.calls.BookList

@@ -38,7 +38,7 @@ type Query {
   author(id: ID!): Author
   authors: [Author!]!
   book(id: ID!): Book
-  books: [Book!]!
+  books(limit: Int, offset: Int): [Book!]!
 }
 
 type Mutation {
