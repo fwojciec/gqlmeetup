@@ -15,7 +15,6 @@ var (
 	lockDataLoaderServiceMockAuthorListByAgentID sync.RWMutex
 	lockDataLoaderServiceMockAuthorListByBookID  sync.RWMutex
 	lockDataLoaderServiceMockBookListByAuthorID  sync.RWMutex
-	lockDataLoaderServiceMockInitialize          sync.RWMutex
 	lockDataLoaderServiceMockMiddleware          sync.RWMutex
 )
 
@@ -41,9 +40,6 @@ var _ gqlmeetup.DataLoaderService = &DataLoaderServiceMock{}
 //             BookListByAuthorIDFunc: func(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error) {
 // 	               panic("mock out the BookListByAuthorID method")
 //             },
-//             InitializeFunc: func(ctx context.Context) context.Context {
-// 	               panic("mock out the Initialize method")
-//             },
 //             MiddlewareFunc: func(in1 http.Handler) http.Handler {
 // 	               panic("mock out the Middleware method")
 //             },
@@ -65,9 +61,6 @@ type DataLoaderServiceMock struct {
 
 	// BookListByAuthorIDFunc mocks the BookListByAuthorID method.
 	BookListByAuthorIDFunc func(ctx context.Context, authorID int64) ([]*gqlmeetup.Book, error)
-
-	// InitializeFunc mocks the Initialize method.
-	InitializeFunc func(ctx context.Context) context.Context
 
 	// MiddlewareFunc mocks the Middleware method.
 	MiddlewareFunc func(in1 http.Handler) http.Handler
@@ -101,11 +94,6 @@ type DataLoaderServiceMock struct {
 			Ctx context.Context
 			// AuthorID is the authorID argument value.
 			AuthorID int64
-		}
-		// Initialize holds details about calls to the Initialize method.
-		Initialize []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
 		}
 		// Middleware holds details about calls to the Middleware method.
 		Middleware []struct {
@@ -252,37 +240,6 @@ func (mock *DataLoaderServiceMock) BookListByAuthorIDCalls() []struct {
 	lockDataLoaderServiceMockBookListByAuthorID.RLock()
 	calls = mock.calls.BookListByAuthorID
 	lockDataLoaderServiceMockBookListByAuthorID.RUnlock()
-	return calls
-}
-
-// Initialize calls InitializeFunc.
-func (mock *DataLoaderServiceMock) Initialize(ctx context.Context) context.Context {
-	if mock.InitializeFunc == nil {
-		panic("DataLoaderServiceMock.InitializeFunc: method is nil but DataLoaderService.Initialize was just called")
-	}
-	callInfo := struct {
-		Ctx context.Context
-	}{
-		Ctx: ctx,
-	}
-	lockDataLoaderServiceMockInitialize.Lock()
-	mock.calls.Initialize = append(mock.calls.Initialize, callInfo)
-	lockDataLoaderServiceMockInitialize.Unlock()
-	return mock.InitializeFunc(ctx)
-}
-
-// InitializeCalls gets all the calls that were made to Initialize.
-// Check the length with:
-//     len(mockedDataLoaderService.InitializeCalls())
-func (mock *DataLoaderServiceMock) InitializeCalls() []struct {
-	Ctx context.Context
-} {
-	var calls []struct {
-		Ctx context.Context
-	}
-	lockDataLoaderServiceMockInitialize.RLock()
-	calls = mock.calls.Initialize
-	lockDataLoaderServiceMockInitialize.RUnlock()
 	return calls
 }
 

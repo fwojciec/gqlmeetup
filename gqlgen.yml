@@ -3,9 +3,9 @@
 
 schema: schema.graphql
 exec:
-  filename: gqlgen/exec.go
+  filename: gqlgen/exec_gen.go
 model:
-  filename: gqlgen/model.go
+  filename: gqlgen/model_gen.go
 resolver:
   filename: gqlgen/resolvers.go
   type: Resolver
