@@ -3,7 +3,7 @@ module github.com/fwojciec/gqlmeetup
 go 1.14
 
 require (
-	github.com/99designs/gqlgen v0.11.2
+	github.com/99designs/gqlgen v0.11.3
 	github.com/alexedwards/scs/v2 v2.3.0
 	github.com/fwojciec/pgtester v0.0.0-20200203082456-9c16d488fda8
 	github.com/jmoiron/sqlx v1.2.0
