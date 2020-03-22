@@ -34,13 +34,6 @@ type Book struct {
 	AuthorIDs []int64
 }
 
-// BookAuthor is an associative table between books and authors.
-type BookAuthor struct {
-	ID       int64
-	BookID   int64 `json:"book_id" db:"book_id"`
-	AuthorID int64 `json:"author_id" db:"author_id"`
-}
-
 // Repository represents database functionality.
 type Repository interface {
 	// Agent
@@ -79,7 +72,6 @@ type DataLoaderService interface {
 	AuthorListByAgentID(ctx context.Context, agentID int64) ([]*Author, error)
 	AuthorListByBookID(ctx context.Context, bookID int64) ([]*Author, error)
 	BookListByAuthorID(ctx context.Context, authorID int64) ([]*Book, error)
-	Initialize(ctx context.Context) context.Context
 	Middleware(http.Handler) http.Handler
 }
 
