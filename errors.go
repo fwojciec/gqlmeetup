@@ -6,7 +6,7 @@ import (
 
 var (
 	// ErrInvalid is returned when a params or input values are invalid.
-	ErrInvalid = errors.New("not found")
+	ErrInvalid = errors.New("invalid")
 
 	// ErrNotFound is returned when a queried resource was not found.
 	ErrNotFound = errors.New("not found")
