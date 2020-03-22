@@ -21,10 +21,9 @@ func TestAuthorListByAgentID(t *testing.T) {
 			return []*gqlmeetup.Author{&testAuthor1, &testAuthor2, &testAuthor3}, nil
 		},
 	}
-	dls := dataloaden.DataLoaderService{Repository: mock}
+	dls := &dataloaden.DataLoaderService{Repository: mock}
 	ctx := dls.Initialize(context.Background())
 	t.Run("concurrent requests", func(t *testing.T) {
-		t.Parallel()
 		tests := []struct {
 			agentID int64
 			exp     []*gqlmeetup.Author
@@ -42,6 +41,7 @@ func TestAuthorListByAgentID(t *testing.T) {
 			})
 		}
 	})
+	equals(t, 1, len(mock.AuthorListByAgentIDsCalls()))
 }
 
 func TestAgentListByIDs(t *testing.T) {
@@ -54,7 +54,6 @@ func TestAgentListByIDs(t *testing.T) {
 	dls := dataloaden.DataLoaderService{Repository: mock}
 	ctx := dls.Initialize(context.Background())
 	t.Run("concurrent requests", func(t *testing.T) {
-		t.Parallel()
 		tests := []struct {
 			id  int64
 			exp *gqlmeetup.Agent
@@ -73,6 +72,7 @@ func TestAgentListByIDs(t *testing.T) {
 			})
 		}
 	})
+	equals(t, 1, len(mock.AgentListByIDsCalls()))
 }
 
 func TestBookListByAuthorID(t *testing.T) {
@@ -85,7 +85,6 @@ func TestBookListByAuthorID(t *testing.T) {
 	dls := dataloaden.DataLoaderService{Repository: mock}
 	ctx := dls.Initialize(context.Background())
 	t.Run("concurrent requests", func(t *testing.T) {
-		t.Parallel()
 		tests := []struct {
 			authorID int64
 			exp      []*gqlmeetup.Book
@@ -103,6 +102,7 @@ func TestBookListByAuthorID(t *testing.T) {
 			})
 		}
 	})
+	equals(t, 1, len(mock.BookListByAuthorIDsCalls()))
 }
 
 func TestAuthorListByBookID(t *testing.T) {
@@ -115,7 +115,6 @@ func TestAuthorListByBookID(t *testing.T) {
 	dls := dataloaden.DataLoaderService{Repository: mock}
 	ctx := dls.Initialize(context.Background())
 	t.Run("concurrent requests", func(t *testing.T) {
-		t.Parallel()
 		tests := []struct {
 			bookID int64
 			exp    []*gqlmeetup.Author
@@ -134,6 +133,7 @@ func TestAuthorListByBookID(t *testing.T) {
 			})
 		}
 	})
+	equals(t, 1, len(mock.AuthorListByBookIDsCalls()))
 }
 
 func TestMiddleware(t *testing.T) {
@@ -148,6 +148,7 @@ func TestMiddleware(t *testing.T) {
 		ok(t, err)
 	}))
 	handler.ServeHTTP(nil, req)
+	equals(t, 1, len(repo.AgentListByIDsCalls()))
 }
 
 var (
