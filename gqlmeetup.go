@@ -49,6 +49,7 @@ type Repository interface {
 	AuthorDelete(ctx context.Context, id int64) (*Author, error)
 	AuthorGetByID(ctx context.Context, id int64) (*Author, error)
 	AuthorList(ctx context.Context) ([]*Author, error)
+	AuthorListByAgentID(ctx context.Context, agentIDs int64) ([]*Author, error) // for dataloader demo purposes only
 	AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*Author, error)
 	AuthorListByBookIDs(ctx context.Context, bookIDs []int64) ([]*Author, error)
 	AuthorUpdate(ctx context.Context, id int64, data Author) (*Author, error)

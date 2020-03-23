@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"github.com/fwojciec/gqlmeetup"
 	"github.com/jmoiron/sqlx"
@@ -16,7 +18,7 @@ type Repository struct {
 
 var _ gqlmeetup.Repository = (*Repository)(nil)
 
-// Agent -----------------------------------------------------------------------
+// Agent -------------------------------------
 
 const agentCreateQuery = `
 INSERT INTO agents (name, email) VALUES ($1, $2) RETURNING *;`
@@ -58,10 +60,16 @@ func (r *Repository) AgentGetByID(ctx context.Context, id int64) (*gqlmeetup.Age
 }
 
 const agentListQuery = `
-SELECT * FROM agents;`
+SELECT * FROM agents;
+`
 
 // AgentList lists all agents.
 func (r *Repository) AgentList(ctx context.Context) ([]*gqlmeetup.Agent, error) {
+	fmt.Printf(`
+START ---
+QUERY:%s
+END -----
+`, strings.ReplaceAll(agentListQuery, "\n", " "))
 	res := make([]*gqlmeetup.Agent, 0)
 	if err := r.DB.SelectContext(ctx, &res, agentListQuery); err != nil {
 		return nil, err
@@ -94,7 +102,7 @@ func (r *Repository) AgentUpdate(ctx context.Context, id int64, data gqlmeetup.A
 	return res, nil
 }
 
-// Author ----------------------------------------------------------------------
+// Author ------------------------------------
 
 const authorCreateQuery = `
 INSERT INTO authors (name, agent_id) VALUES ($1, $2) RETURNING *;`
@@ -147,13 +155,39 @@ func (r *Repository) AuthorList(ctx context.Context) ([]*gqlmeetup.Author, error
 	return res, nil
 }
 
+const authorListByAgentIDQuery = `
+SELECT * FROM authors
+WHERE agent_id = $1;
+`
+
+// AuthorListByAgentID lists authors for a list of matching agent ids.
+func (r *Repository) AuthorListByAgentID(ctx context.Context, agentID int64) ([]*gqlmeetup.Author, error) {
+	fmt.Printf(`
+START ---
+QUERY:%s
+ARGS: %d
+END -----
+`, strings.ReplaceAll(authorListByAgentIDQuery, "\n", " "), agentID)
+	res := make([]*gqlmeetup.Author, 0)
+	if err := r.DB.SelectContext(ctx, &res, authorListByAgentIDQuery, agentID); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 const authorListByAgentIDsQuery = `
-SELECT authors.* FROM authors, agents
-WHERE authors.agent_id = agents.id AND agents.id = ANY($1::bigint[]);
+SELECT * FROM authors
+WHERE agent_id = ANY($1::bigint[]);
 `
 
 // AuthorListByAgentIDs lists authors for a list of matching agent ids.
 func (r *Repository) AuthorListByAgentIDs(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
+	fmt.Printf(`
+START ---
+QUERY:%s
+ARGS: %v
+END -----
+`, strings.ReplaceAll(authorListByAgentIDQuery, "\n", " "), agentIDs)
 	res := make([]*gqlmeetup.Author, 0)
 	if err := r.DB.SelectContext(ctx, &res, authorListByAgentIDsQuery, pq.Array(agentIDs)); err != nil {
 		return nil, err
@@ -204,7 +238,7 @@ func (r *Repository) AuthorUpdate(ctx context.Context, id int64, data gqlmeetup.
 	return res, nil
 }
 
-// Book ------------------------------------------------------------------------
+// Book --------------------------------------
 
 const bookCreateQuery = `
 INSERT INTO books (title) VALUES ($1) RETURNING *;`
@@ -334,7 +368,7 @@ func unsetBookAuthors(ctx context.Context, tx *sqlx.Tx, bookID int64) error {
 	return err
 }
 
-// User ------------------------------------------------------------------------
+// User --------------------------------------
 
 const userCreateQuery = `
 INSERT INTO users (email, password, admin) VALUES ($1, $2, $3);`

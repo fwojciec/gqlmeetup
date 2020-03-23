@@ -23,6 +23,7 @@ func (r *agentResolver) ID(ctx context.Context, obj *gqlmeetup.Agent) (string, e
 
 func (r *agentResolver) Authors(ctx context.Context, obj *gqlmeetup.Agent) ([]*gqlmeetup.Author, error) {
 	return r.DataLoaders.AuthorListByAgentID(ctx, obj.ID)
+	// return r.Repository.AuthorListByAgentID(ctx, obj.ID)
 }
 
 // Author Resolver ------------------------------------------------------------

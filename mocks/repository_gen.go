@@ -20,6 +20,7 @@ var (
 	lockRepositoryMockAuthorDelete         sync.RWMutex
 	lockRepositoryMockAuthorGetByID        sync.RWMutex
 	lockRepositoryMockAuthorList           sync.RWMutex
+	lockRepositoryMockAuthorListByAgentID  sync.RWMutex
 	lockRepositoryMockAuthorListByAgentIDs sync.RWMutex
 	lockRepositoryMockAuthorListByBookIDs  sync.RWMutex
 	lockRepositoryMockAuthorUpdate         sync.RWMutex
@@ -72,6 +73,9 @@ var _ gqlmeetup.Repository = &RepositoryMock{}
 //             },
 //             AuthorListFunc: func(ctx context.Context) ([]*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorList method")
+//             },
+//             AuthorListByAgentIDFunc: func(ctx context.Context, agentIDs int64) ([]*gqlmeetup.Author, error) {
+// 	               panic("mock out the AuthorListByAgentID method")
 //             },
 //             AuthorListByAgentIDsFunc: func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error) {
 // 	               panic("mock out the AuthorListByAgentIDs method")
@@ -142,6 +146,9 @@ type RepositoryMock struct {
 
 	// AuthorListFunc mocks the AuthorList method.
 	AuthorListFunc func(ctx context.Context) ([]*gqlmeetup.Author, error)
+
+	// AuthorListByAgentIDFunc mocks the AuthorListByAgentID method.
+	AuthorListByAgentIDFunc func(ctx context.Context, agentIDs int64) ([]*gqlmeetup.Author, error)
 
 	// AuthorListByAgentIDsFunc mocks the AuthorListByAgentIDs method.
 	AuthorListByAgentIDsFunc func(ctx context.Context, agentIDs []int64) ([]*gqlmeetup.Author, error)
@@ -245,6 +252,13 @@ type RepositoryMock struct {
 		AuthorList []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
+		}
+		// AuthorListByAgentID holds details about calls to the AuthorListByAgentID method.
+		AuthorListByAgentID []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// AgentIDs is the agentIDs argument value.
+			AgentIDs int64
 		}
 		// AuthorListByAgentIDs holds details about calls to the AuthorListByAgentIDs method.
 		AuthorListByAgentIDs []struct {
@@ -677,6 +691,41 @@ func (mock *RepositoryMock) AuthorListCalls() []struct {
 	lockRepositoryMockAuthorList.RLock()
 	calls = mock.calls.AuthorList
 	lockRepositoryMockAuthorList.RUnlock()
+	return calls
+}
+
+// AuthorListByAgentID calls AuthorListByAgentIDFunc.
+func (mock *RepositoryMock) AuthorListByAgentID(ctx context.Context, agentIDs int64) ([]*gqlmeetup.Author, error) {
+	if mock.AuthorListByAgentIDFunc == nil {
+		panic("RepositoryMock.AuthorListByAgentIDFunc: method is nil but Repository.AuthorListByAgentID was just called")
+	}
+	callInfo := struct {
+		Ctx      context.Context
+		AgentIDs int64
+	}{
+		Ctx:      ctx,
+		AgentIDs: agentIDs,
+	}
+	lockRepositoryMockAuthorListByAgentID.Lock()
+	mock.calls.AuthorListByAgentID = append(mock.calls.AuthorListByAgentID, callInfo)
+	lockRepositoryMockAuthorListByAgentID.Unlock()
+	return mock.AuthorListByAgentIDFunc(ctx, agentIDs)
+}
+
+// AuthorListByAgentIDCalls gets all the calls that were made to AuthorListByAgentID.
+// Check the length with:
+//     len(mockedRepository.AuthorListByAgentIDCalls())
+func (mock *RepositoryMock) AuthorListByAgentIDCalls() []struct {
+	Ctx      context.Context
+	AgentIDs int64
+} {
+	var calls []struct {
+		Ctx      context.Context
+		AgentIDs int64
+	}
+	lockRepositoryMockAuthorListByAgentID.RLock()
+	calls = mock.calls.AuthorListByAgentID
+	lockRepositoryMockAuthorListByAgentID.RUnlock()
 	return calls
 }
 
